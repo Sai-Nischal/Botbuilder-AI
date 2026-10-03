@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Documents - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-family: var(--font-heading); font-size: 2rem;">PDF Document Intelligence</h1>
+            <p style="color: var(--text-secondary);">Upload menus, price lists, or brochures to train your bot with fallback passages.</p>
+        </div>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    <!-- Document Upload Card -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 0.5rem;">Upload New PDF Document</h3>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+            Limit: Max 10 MB per file, up to 5 files per business. Text-based PDFs only (scanned PDFs without OCR are rejected).
+        </p>
+
+        <form action="/documents/{{ business.business_id }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label class="form-label">Select PDF File</label>
+                <input type="file" name="pdf_file" accept=".pdf" class="form-control" required style="padding: 0.6rem;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                📤 Upload & Process Document
+            </button>
+        </form>
+    </div>
+
+    <!-- Uploaded Documents List -->
+    <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">Uploaded Documents ({{ documents|length }}/5)</h3>
+
+        {% if documents %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for doc in documents %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem;">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary);">📄 {{ doc.filename }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                Size: {{ (doc.file_size / 1024) | round(1) }} KB | Passages Extracted: <strong>{{ doc.passages|length }}</strong>
+                            </div>
+                        </div>
+
+                        <form action="/documents/{{ business.business_id }}/delete/{{ doc.id }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this document and rebuild index?')">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">
+                No PDF documents uploaded yet. Upload a document above to add intelligent passage fallbacks!
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

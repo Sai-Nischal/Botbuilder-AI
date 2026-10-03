@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Chatbot Published - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 2rem auto; text-align: center;">
+    <div class="glass-card">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+        <h1 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">Chatbot Published Successfully!</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Your chatbot for <strong>{{ business.name }}</strong> is live and indexed for similarity queries.
+        </p>
+
+        <div style="margin-bottom: 2rem;">
+            <label class="form-label" style="font-size: 1rem;">Direct Telegram Start Link</label>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; max-width: 500px; margin: 0 auto;">
+                <input type="text" id="telegram-deep-link" class="form-control" value="{{ telegram_link }}" readonly style="text-align: center; font-weight: 600;">
+                <button type="button" class="btn btn-secondary btn-copy" data-copy-target="telegram-deep-link">
+                    Copy Link
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label class="form-label" style="font-size: 1rem; margin-bottom: 1rem;">Scan QR Code to Start Chat</label>
+            <div class="qr-container">
+                <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Telegram Chatbot QR Code">
+            </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+            <a href="{{ telegram_link }}" target="_blank" class="btn btn-primary">
+                💬 Open Chat on Telegram
+            </a>
+            <a href="/bot/{{ business.business_id }}" class="btn btn-secondary">
+                🤖 Connect Custom Bot Token
+            </a>
+            <a href="/documents/{{ business.business_id }}" class="btn btn-secondary">
+                📄 Upload Business PDFs
+            </a>
+            <a href="/dashboard" class="btn btn-secondary">
+                Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

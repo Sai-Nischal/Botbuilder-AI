@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Review FAQs - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-family: var(--font-heading); font-size: 2.2rem;">Review & Edit FAQs</h1>
+            <p style="color: var(--text-secondary);">Customize answers, alt phrasings, and buttons before going live.</p>
+        </div>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    <form action="/review/{{ business.business_id }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div id="faqs-list-container">
+            {% for faq in faqs %}
+                <div class="faq-edit-card" id="faq-card-{{ faq.id }}">
+                    <div class="faq-card-header">
+                        <span class="badge badge-success">FAQ #{{ faq.id }}</span>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.faq-edit-card').remove()">Delete</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Primary Question</label>
+                        <input type="text" name="faq_q_{{ faq.id }}" class="form-control" value="{{ faq.q }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Alternative Customer Questions / Phrasings (comma separated)</label>
+                        <input type="text" name="faq_alt_{{ faq.id }}" class="form-control" value="{{ faq.alt_questions | join(', ') }}" placeholder="e.g. opening hours, when do you open">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Answer Text</label>
+                        <textarea name="faq_a_{{ faq.id }}" class="form-control" rows="3" required>{{ faq.a }}</textarea>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Menu Button Label (max 20 chars)</label>
+                            <input type="text" name="faq_button_label_{{ faq.id }}" class="form-control" value="{{ faq.button_label or faq.q[:20] }}">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                            <input type="checkbox" name="faq_show_button_{{ faq.id }}" value="true" {% if faq.show_as_button %}checked{% endif %} id="show_btn_{{ faq.id }}">
+                            <label for="show_btn_{{ faq.id }}" class="form-label" style="margin: 0; cursor: pointer;">Show as Inline Menu Button</label>
+                        </div>
+                    </div>
+                    <input type="hidden" name="faq_ids[]" value="{{ faq.id }}">
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="addReviewFAQRow('faqs-list-container')">
+                + Add Custom FAQ
+            </button>
+
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+                🚀 Publish Chatbot & Build Vector Index
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

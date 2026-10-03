@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - BotBuilder{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="font-family: var(--font-heading); font-size: 2.2rem;">Your Businesses & Bots</h1>
+        <p style="color: var(--text-secondary);">Manage chatbot configurations, review FAQs, and connect custom Telegram bots.</p>
+    </div>
+    <a href="/create" class="btn btn-primary">+ Create New Chatbot</a>
+</div>
+
+{% if businesses %}
+    <div class="grid-2">
+        {% for biz in businesses %}
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <h2 style="font-family: var(--font-heading); font-size: 1.4rem;">{{ biz.name }}</h2>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">ID: {{ biz.business_id }}</span>
+                    </div>
+                    {% if biz.is_published %}
+                        <span class="badge badge-success">✓ Published</span>
+                    {% else %}
+                        <span class="badge badge-warning">● Draft</span>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <p><strong>Industry:</strong> {{ biz.industry or 'General' }}</p>
+                    <p><strong>Bot Mode:</strong> 
+                        {% if biz.bot and biz.bot.mode == 'branded' %}
+                            <span style="color: var(--accent-cyan); font-weight: 600;">Branded (@{{ biz.bot.bot_username or 'custom' }})</span>
+                        {% else %}
+                            <span>Shared Platform Bot</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <a href="/review/{{ biz.business_id }}" class="btn btn-secondary btn-sm">📝 Review FAQs</a>
+                    <a href="/edit/{{ biz.business_id }}" class="btn btn-secondary btn-sm">✏️ Edit Details</a>
+                    <a href="/bot/{{ biz.business_id }}" class="btn btn-secondary btn-sm">🤖 Custom Bot</a>
+                    <a href="/documents/{{ biz.business_id }}" class="btn btn-secondary btn-sm">📄 PDFs</a>
+                    {% if biz.is_published %}
+                        <a href="/done/{{ biz.business_id }}" class="btn btn-primary btn-sm">🔗 Chat Link & QR</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+        <h2 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">No Chatbots Created Yet</h2>
+        <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem;">
+            Get started by entering your business details. We'll generate FAQs and set up your Telegram bot in seconds.
+        </p>
+        <a href="/create" class="btn btn-primary">+ Create Your First Chatbot</a>
+    </div>
+{% endif %}
+{% endblock %}

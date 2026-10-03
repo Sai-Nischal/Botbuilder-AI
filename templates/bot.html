@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Branded Bot Settings - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 750px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-family: var(--font-heading); font-size: 2rem;">Telegram Bot Settings</h1>
+            <p style="color: var(--text-secondary);">Connect your custom branded Telegram bot for {{ business.name }}</p>
+        </div>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    <!-- Current Connection Status -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">Current Connection Status</h3>
+        {% if bot and bot.mode == 'branded' and bot.is_active %}
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 1.25rem;">
+                <div>
+                    <div class="badge badge-success" style="margin-bottom: 0.5rem;">● Connected Branded Bot</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #ffffff;">@{{ bot.bot_username }}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        Stored Token: <code>{{ masked_token }}</code> (Encrypted at Rest)
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        Webhook Endpoint: <code>/telegram/webhook/{{ bot.bot_key }}</code>
+                    </div>
+                </div>
+
+                <form action="/bot/{{ business.business_id }}/disconnect" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Disconnect this custom bot?')">
+                        Disconnect Bot
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+                <span class="badge badge-warning">● Default Platform Bot</span>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                    Currently using shared platform bot deep link. You can connect your own custom bot created via BotFather below.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Method 1: BotFather Token -->
+    <div class="glass-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin: 0;">Connect via BotFather Token</h3>
+            <a href="https://t.me/BotFather" target="_blank" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.4rem;">
+                ✈️ Open @BotFather on Telegram
+            </a>
+        </div>
+
+        <!-- Visual Step-by-Step Guide -->
+        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 1rem; font-family: var(--font-heading);">📱 Mobile Walkthrough: How to get & copy your Bot Token</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: center;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                    <div style="font-weight: 700; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">STEP 1: Start BotFather</div>
+                    <img src="/static/images/botfather_step1.png" alt="Step 1 - Tap Start Bot" style="width: 100%; max-height: 320px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 0.4rem;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Open <a href="https://t.me/BotFather" target="_blank" style="color: #60a5fa; font-weight: 600;">@BotFather</a> and tap <strong>Start Bot</strong> button.</div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                    <div style="font-weight: 700; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">STEP 2: Tap /newbot</div>
+                    <img src="/static/images/botfather_step2.png" alt="Step 2 - Tap /newbot" style="width: 100%; max-height: 320px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 0.4rem;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Tap or send <code style="background: #1e293b; color: #a7f3d0; padding: 0.1rem 0.3rem; border-radius: 3px;">/newbot</code> command in chat.</div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.85rem;">
+                    <div style="font-weight: 700; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.4rem;">STEP 3: Copy HTTP API Token</div>
+                    <img src="/static/images/botfather_step3.png" alt="Step 3 - Copy Token" style="width: 100%; max-height: 320px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 0.4rem;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Type Name & Username ending in <code style="color: #fef08a;">bot</code>, then copy the API token string.</div>
+                </div>
+            </div>
+        </div>
+
+        <form action="/bot/{{ business.business_id }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 600;">Paste Telegram Bot API Token Here:</label>
+                <input type="text" name="bot_token" class="form-control" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyZ" required style="font-family: monospace;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; font-weight: 600;">
+                ⚡ Validate Token & Register Custom Bot
+            </button>
+        </form>
+    </div>
+
+    <!-- Method 2: Managed Bots (Feature Flagged) -->
+    <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); color: var(--text-muted); margin-bottom: 0.5rem;">Method 2: Telegram Managed Bots (MTProto)</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            Telegram managed bots allow bot creation directly inside Telegram via manager confirmation prompts.
+        </p>
+        {% if enable_managed_bots %}
+            <div class="alert alert-warning">
+                Managed bots status: Feature flag active. Pending MTProto API authorization layer.
+            </div>
+        {% else %}
+            <div style="font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
+                ℹ️ <strong>Status:</strong> Disabled by default (<code>ENABLE_MANAGED_BOTS=false</code>). Managed bots require MTProto application credentials. Please use Method 1 (BotFather Token).
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Create Business Chatbot - BotBuilder{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="glass-card">
+        <h1 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">Create Your Business Chatbot</h1>
+        {% if error %}
+            <div style="margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 1rem; border-radius: var(--radius-md); font-weight: 600;">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/create" method="POST" id="create-bot-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 1rem;">1. Basic Business Details</h3>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Business Name *</label>
+                    <input type="text" id="field-name" name="name" class="form-control" placeholder="e.g. Sunrise Dental Clinic" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Industry / Category</label>
+                    <input type="text" id="field-industry" name="industry" class="form-control" placeholder="e.g. Healthcare, Dental, College, Shopping Mall">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Short Business Description</label>
+                <textarea id="field-description" name="description" class="form-control" placeholder="Describe your business services, specialties, or campus features..."></textarea>
+            </div>
+
+            <!-- GOOGLE MAPS RESEARCH SECTION -->
+            <div style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border: 2px solid var(--accent-cyan); border-radius: var(--radius-md); padding: 1.25rem; margin: 1.5rem 0; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <label class="form-label" style="font-weight: 700; font-size: 1.05rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        📍 Google Maps Location URL
+                        <span style="color: #06b6d4; font-size: 0.8rem; padding: 0.2rem 0.6rem; background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            ⭐ Priority #1 Feature
+                        </span>
+                    </label>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.4;">
+                    Paste your Google Maps location URL below. Our AI Agent will conduct a multi-stage web research pipeline to autofill your details.
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <input type="url" id="field-gmaps-url" name="gmaps_url" class="form-control" placeholder="e.g. https://maps.app.goo.gl/... or https://maps.google.com/?q=..." style="flex: 1; min-width: 250px; font-size: 0.95rem; border-color: var(--accent-cyan);">
+                    <button type="button" id="btn-fetch-gmaps" class="btn btn-primary" onclick="autoFillFromGMaps()" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #06b6d4, #2563eb);">
+                        ⚡ Start AI Research
+                    </button>
+                </div>
+
+                <!-- RESEARCH PROGRESS STEPPER -->
+                <div id="research-stepper" style="display: none; margin-top: 1.5rem; font-family: var(--font-sans);">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div id="step-identifying" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <span class="step-icon">⚪</span> Identifying Business...
+                        </div>
+                        <div id="step-web_research" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <span class="step-icon">⚪</span> Researching Web Sources...
+                        </div>
+                        <div id="step-deep_research" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <span class="step-icon">⚪</span> Deep Dive (Services & Pricing)...
+                        </div>
+                        <div id="step-verifying" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <span class="step-icon">⚪</span> Verifying & Cross-Checking...
+                        </div>
+                    </div>
+                </div>
+                <div id="gmaps-status" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">2. Contact & Opening Hours</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" id="field-phone" name="phone" class="form-control" placeholder="e.g. +1 (555) 019-2834">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="field-email" name="email" class="form-control" placeholder="info@sunrisedental.com">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Physical Address / Location</label>
+                    <input type="text" id="field-address" name="address" class="form-control" placeholder="e.g. 123 Main Street, Suite 400">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Website URL</label>
+                    <input type="url" id="field-website" name="website" class="form-control" placeholder="https://sunrisedental.com">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Mon-Sat Opening Hours</label>
+                    <input type="text" id="field-mon-sat-hours" name="mon_sat_hours" class="form-control" placeholder="e.g. 9:00-18:00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sunday Hours</label>
+                    <input type="text" id="field-sun-hours" name="sun_hours" class="form-control" placeholder="e.g. Closed or 10:00-14:00">
+                </div>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">3. Offered Services & Pricing</h3>
+            <div id="services-container">
+                <div class="grid-3 service-row form-group" style="align-items: end;">
+                    <div>
+                        <label class="form-label">Service Name *</label>
+                        <input type="text" name="service_name[]" class="form-control service-name-input" placeholder="e.g. Teeth Cleaning" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Price</label>
+                        <input type="text" name="service_price[]" class="form-control service-price-input" placeholder="e.g. $80">
+                    </div>
+                    <div>
+                        <label class="form-label">Details (optional)</label>
+                        <input type="text" name="service_details[]" class="form-control service-details-input" placeholder="e.g. 30 mins session">
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addServiceRow('services-container')" style="margin-bottom: 1.5rem;">
+                + Add Another Service
+            </button>
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">4. Company Policies</h3>
+            <div class="form-group">
+                <label class="form-label">Refund / Cancellation Policy</label>
+                <textarea id="field-refund-policy" name="refund_policy" class="form-control" placeholder="e.g. Full refund up to 24 hours prior to appointment."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Booking Policy</label>
+                <textarea id="field-booking-policy" name="booking_policy" class="form-control" placeholder="e.g. Bookings can be made online via phone."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Accepted Payment Methods</label>
+                <input type="text" id="field-payment-methods" name="payment_methods" class="form-control" placeholder="e.g. Cash, Credit Cards, Apple Pay">
+            </div>
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">🤖 5. Custom Greeting Messages</h3>
+            <div class="form-group">
+                <label class="form-label">Welcome Message (/start)</label>
+                <textarea id="field-welcome-message" name="welcome_message" class="form-control" placeholder="Welcome to Sunrise Dental Clinic! Choose an option below or type any question:"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Fallback Message (When answer is unknown)</label>
+                <textarea id="field-fallback-message" name="fallback_message" class="form-control" placeholder="I couldn't find an exact answer. Please contact us directly at info@sunrisedental.com"></textarea>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">🤖 6. Connect Dedicated Telegram Bot *</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                Each business gets its own dedicated Telegram Bot with its own custom Name, Bio, Description, and Header!
+            </p>
+
+            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <h4 style="font-size: 1rem; color: #fff; margin: 0; font-family: var(--font-heading);">📱 Mobile Walkthrough: How to get & copy your Bot Token</h4>
+                    <a href="https://t.me/BotFather" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600;">
+                        ✈️ Open @BotFather on Telegram
+                    </a>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; text-align: center;">
+                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 1: Start BotFather</div>
+                        <img src="/static/images/botfather_step1.png" alt="Step 1 - Tap Start Bot in BotFather" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Open <a href="https://t.me/BotFather" target="_blank" style="color: #60a5fa; font-weight: 600;">@BotFather</a> and tap <strong>Start Bot</strong> button at bottom.</div>
+                    </div>
+
+                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 2: Tap /newbot</div>
+                        <img src="/static/images/botfather_step2.png" alt="Step 2 - Tap /newbot command" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Tap or type <code style="background: #1e293b; color: #a7f3d0; padding: 0.1rem 0.3rem; border-radius: 3px;">/newbot</code> to create a new bot account.</div>
+                    </div>
+
+                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 3: Copy HTTP API Token</div>
+                        <img src="/static/images/botfather_step3.png" alt="Step 3 - Enter Name, Username and copy HTTP API Token" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Type Name & Username ending in <code style="color: #fef08a;">bot</code>, then tap to copy the HTTP API token string.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="font-weight: 700; font-size: 1.05rem;">Paste Telegram Bot Token Here *</label>
+                <input type="text" name="bot_token" class="form-control" placeholder="e.g. 8580366269:AAFdX...your-token..." required style="font-family: monospace; font-size: 1rem; border-color: var(--accent-primary);">
+                <small style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
+                    We automatically sync your Bot Name, Description, and Bio directly on Telegram using this token!
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1.1rem; font-weight: 700;">
+                🚀 Create Dedicated Chatbot & Generate FAQs
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+async function autoFillFromGMaps() {
+    const urlInput = document.getElementById('field-gmaps-url');
+    const statusDiv = document.getElementById('gmaps-status');
+    const btn = document.getElementById('btn-fetch-gmaps');
+    const stepper = document.getElementById('research-stepper');
+    const gmapsUrl = urlInput.value.trim();
+
+    if (!gmapsUrl) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerHTML = '⚠️ Please enter a Google Maps URL first.';
+        return;
+    }
+
+    statusDiv.style.display = 'none';
+    stepper.style.display = 'block';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+
+    try {
+        const response = await fetch('/api/business/research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gmaps_url: gmapsUrl })
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to extract data from Google Maps.');
+        }
+
+        const data = result.data;
+        updateStepper('completed', 100);
+        fillFormWithResearchData(data);
+
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#4ade80';
+        statusDiv.innerHTML = '✨ Research complete! Your business profile has been autofilled using verified web sources.';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+
+    } catch (err) {
+        console.error(err);
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerHTML = '⚠️ ' + err.message;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        stepper.style.display = 'none';
+    }
+}
+
+function updateStepper(status, progress) {
+    const stages = {
+        'identifying': { id: 'step-identifying', icon: '⚙️' },
+        'web_research': { id: 'step-web_research', icon: '⚙️' },
+        'deep_research': { id: 'step-deep_research', icon: '⚙️' },
+        'verifying': { id: 'step-verifying', icon: '⚙️' },
+        'completed': { id: null, icon: null }
+    };
+
+    Object.values(stages).forEach(stage => {
+        const el = document.getElementById(stage.id);
+        if (el) {
+            el.style.color = 'var(--text-secondary)';
+            el.querySelector('.step-icon').innerHTML = '⚪';
+        }
+    });
+
+    const order = ['identifying', 'web_research', 'deep_research', 'verifying'];
+    const currentIdx = order.indexOf(status);
+    if (currentIdx === -1) return;
+
+    for (let i = 0; i <= currentIdx; i++) {
+        const stageKey = order[i];
+        const stage = stages[stageKey];
+        const el = document.getElementById(stage.id);
+        if (el) {
+            if (i < currentIdx) {
+                el.style.color = '#4ade80';
+                el.querySelector('.step-icon').innerHTML = '✓';
+            } else {
+                el.style.color = '#38bdf8';
+                el.querySelector('.step-icon').innerHTML = stage.icon;
+            }
+        }
+    }
+}
+
+function fillFormWithResearchData(data) {
+    const mapField = (fieldId, dataKey) => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        const val = data[dataKey];
+        if (val) {
+            field.value = typeof val === 'object' ? (val.value || '') : val;
+            field.style.borderColor = 'var(--accent-cyan)';
+        }
+    };
+
+    mapField('field-name', 'businessName');
+    mapField('field-industry', 'category');
+    mapField('field-phone', 'phone');
+    mapField('field-address', 'location');
+    mapField('field-mon-sat-hours', 'timings');
+    mapField('field-website', 'website');
+
+    const container = document.getElementById('services-container');
+    if (data.services && data.services.length > 0) {
+        container.innerHTML = '';
+        data.services.forEach((srv, idx) => {
+            const row = document.createElement('div');
+            row.className = 'grid-3 service-row form-group';
+            row.style.alignItems = 'end';
+            row.innerHTML = `
+                <div>
+                    <label class="form-label">Service Name *</label>
+                    <input type="text" name="service_name[]" class="form-control service-name-input" value="${srv.name || ''}" required>
+                </div>
+                <div>
+                    <label class="form-label">Price</label>
+                    <input type="text" name="service_price[]" class="form-control service-price-input" value="${srv.price || ''}">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div style="flex: 1;">
+                        <label class="form-label">Details</label>
+                        <input type="text" name="service_details[]" class="form-control service-details-input" value="${srv.details || ''}">
+                    </div>
+                    ${idx > 0 ? `<button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.service-row').remove()" style="margin-bottom: 0.2rem;">✕</button>` : ''}
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+}
+
+function addServiceRow(containerId) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'grid-3 service-row form-group';
+    row.style.alignItems = 'end';
+    row.innerHTML = `
+        <div>
+            <label class="form-label">Service Name *</label>
+            <input type="text" name="service_name[]" class="form-control service-name-input" placeholder="e.g. Teeth Cleaning" required>
+        </div>
+        <div>
+            <label class="form-label">Price</label>
+            <input type="text" name="service_price[]" class="form-control service-price-input" placeholder="e.g. $80">
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div style="flex: 1;">
+                <label class="form-label">Details</label>
+                <input type="text" name="service_details[]" class="form-control service-details-input" placeholder="e.g. 30 mins session">
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.service-row').remove()" style="margin-bottom: 0.2rem;">✕</button>
+        </div>
+    `;
+    container.appendChild(row);
+}
+</script>
+
+{% endblock %}

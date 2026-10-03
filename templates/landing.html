@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}BotBuilder - Instant Telegram Chatbots for Business{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1 class="hero-title">
+        Deploy Smart <span class="brand-badge">Telegram Chatbots</span> For Your Business in Minutes
+    </h1>
+    <p class="hero-subtitle">
+        Automatically convert your business hours, services, policies, and PDF documents into an interactive Telegram chatbot with zero coding or live LLM costs.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="/create" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+            🚀 Create Your Chatbot Now
+        </a>
+        <a href="/login" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            Sign In
+        </a>
+    </div>
+</section>
+
+<section class="grid-3" style="margin-top: 2rem;">
+    <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 0.5rem;">⚡ Instant FAQ Generation</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Enter your business hours, address, services, and refund policies. Our system automatically structures complete FAQ pairs for your customers.
+        </p>
+    </div>
+    <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); color: var(--accent-emerald); margin-bottom: 0.5rem;">🎯 Embedding Similarity</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Uses vector embedding similarity matching (all-MiniLM-L6-v2) for sub-second, highly accurate responses without live LLM API bills.
+        </p>
+    </div>
+    <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); color: var(--accent-primary); margin-bottom: 0.5rem;">📄 PDF Document Intelligence</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Upload menus, price sheets, or brochures. The bot extracts text passages and automatically uses them as smart fallbacks.
+        </p>
+    </div>
+</section>
+{% endblock %}

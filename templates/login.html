@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - BotBuilder{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 3rem auto;">
+    <div class="glass-card">
+        <h2 style="font-family: var(--font-heading); margin-bottom: 0.5rem; text-align: center;">Welcome Back</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
+            Log in to manage your Telegram chatbots
+        </p>
+
+        <form action="/login" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="owner@business.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                Log In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account yet? <a href="/signup" style="color: var(--accent-primary);">Sign up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
