@@ -1,43 +1,233 @@
 {% extends "base.html" %}
 
-{% block title %}BotBuilder - Instant Telegram Chatbots for Business{% endblock %}
+{% block title %}BotBuilder - Professional Telegram Chatbots for Business{% endblock %}
 
 {% block content %}
-<section class="hero-section">
-    <h1 class="hero-title">
-        Deploy Smart <span class="brand-badge">Telegram Chatbots</span> For Your Business in Minutes
-    </h1>
-    <p class="hero-subtitle">
-        Automatically convert your business hours, services, policies, and PDF documents into an interactive Telegram chatbot with zero coding or live LLM costs.
-    </p>
-    <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="/create" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
-            🚀 Create Your Chatbot Now
-        </a>
-        <a href="/login" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
-            Sign In
-        </a>
+<style>
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: var(--space-12);
+        align-items: center;
+        padding: var(--space-16) 0;
+    }
+    .hero-text {
+        text-align: left;
+    }
+    .hero-title {
+        font-family: var(--font-heading);
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: var(--space-6);
+        color: var(--color-text-main);
+    }
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--space-12);
+        max-width: 600px;
+    }
+    .hero-ctas {
+        display: flex;
+        gap: var(--space-4);
+        align-items: center;
+    }
+    .illustration-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .floating-svg {
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    .stats-strip {
+        display: flex;
+        justify-content: around;
+        gap: var(--space-8);
+        padding: var(--space-8) 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        margin: var(--space-12) 0;
+    }
+    .stat-item {
+        text-align: center;
+        flex: 1;
+    }
+    .stat-value {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .how-it-works {
+        padding: var(--space-16) 0;
+    }
+    .section-header {
+        text-align: center;
+        margin-bottom: var(--space-12);
+    }
+    .section-header h2 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        margin-bottom: var(--space-4);
+    }
+    .work-step {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: var(--space-12);
+        align-items: center;
+        margin-bottom: var(--space-16);
+    }
+    .work-step:nth-child(even) {
+        direction: rtl;
+    }
+    .work-step:nth-child(even) .step-content {
+        direction: ltr;
+        text-align: left;
+    }
+    .work-step:nth-child(even) .step-illustration {
+        order: 2;
+    }
+    .step-content h3 {
+        font-family: var(--font-heading);
+        font-size: 1.75rem;
+        margin-bottom: var(--space-4);
+    }
+    .step-content p {
+        color: var(--color-text-muted);
+        font-size: 1.1rem;
+    }
+    .step-illustration {
+        display: flex;
+        justify-content: center;
+    }
+    .illustration-box {
+        width: 300px;
+        height: 300px;
+        background: var(--color-primary-soft);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    @media (max-width: 1024px) {
+        .hero-grid { grid-template-columns: 1fr; text-align: center; }
+        .hero-text { text-align: center; }
+        .hero-subtitle { margin: 0 auto var(--space-12); }
+        .hero-ctas { justify-content: center; }
+        .work-step { grid-template-columns: 1fr; text-align: center; }
+        .work-step:nth-child(even) .step-content { text-align: center; }
+        .work-step:nth-child(even) { direction: ltr; }
+        .work-step:nth-child(even) .step-illustration { order: 0; margin-bottom: var(--space-8); }
+    }
+</style>
+
+<section class="hero-section reveal">
+    <div class="hero-grid">
+        <div class="hero-text">
+            <h1 class="hero-title">
+                Sophisticated <span class="brand-badge">Chatbots</span> for Modern Businesses
+            </h1>
+            <p class="hero-subtitle">
+                Transform your business knowledge, Google Maps presence, and PDF documents into a professional Telegram assistant. No coding, no API bills, just seamless automation.
+            </p>
+            <div class="hero-ctas">
+                <a href="/create" class="btn btn-primary">Get Started Free</a>
+                <a href="/login" class="btn btn-secondary">Client Login</a>
+            </div>
+        </div>
+        <div class="illustration-container">
+            <div class="floating-svg">
+                <!-- Custom Geometric Vector Art: Bot Interface -->
+                <svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="100" y="80" width="200" height="240" rx="20" stroke="var(--color-secondary)" stroke-width="2" fill="var(--color-surface)"/>
+                    <rect x="120" y="110" width="160" height="20" rx="10" fill="var(--color-primary-soft)"/>
+                    <rect x="120" y="140" width="100" height="10" rx="5" fill="var(--color-border)"/>
+                    <rect x="120" y="160" width="140" height="10" rx="5" fill="var(--color-border)"/>
+                    <rect x="120" y="180" width="80" height="10" rx="5" fill="var(--color-border)"/>
+                    <circle cx="200" cy="260" r="30" stroke="var(--color-primary)" stroke-width="2" fill="var(--color-primary-soft)"/>
+                    <path d="M190 260L210 260M200 250L200 270" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="250" y="150" width="60" height="40" rx="10" fill="var(--color-primary)" opacity="0.6"/>
+                    <rect x="90" y="200" width="60" height="40" rx="10" fill="var(--color-primary)" opacity="0.4"/>
+                </svg>
+            </div>
+        </div>
     </div>
 </section>
 
-<section class="grid-3" style="margin-top: 2rem;">
-    <div class="glass-card">
-        <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 0.5rem;">⚡ Instant FAQ Generation</h3>
-        <p style="color: var(--text-secondary); font-size: 0.95rem;">
-            Enter your business hours, address, services, and refund policies. Our system automatically structures complete FAQ pairs for your customers.
-        </p>
+<section class="stats-strip reveal">
+    <div class="stat-item">
+        <span class="stat-value">Sub-second</span>
+        <span class="stat-label">Response Time</span>
     </div>
-    <div class="glass-card">
-        <h3 style="font-family: var(--font-heading); color: var(--accent-emerald); margin-bottom: 0.5rem;">🎯 Embedding Similarity</h3>
-        <p style="color: var(--text-secondary); font-size: 0.95rem;">
-            Uses vector embedding similarity matching (all-MiniLM-L6-v2) for sub-second, highly accurate responses without live LLM API bills.
-        </p>
+    <div class="stat-item">
+        <span class="stat-value">Zero</span>
+        <span class="stat-label">LLM Costs</span>
     </div>
-    <div class="glass-card">
-        <h3 style="font-family: var(--font-heading); color: var(--accent-primary); margin-bottom: 0.5rem;">📄 PDF Document Intelligence</h3>
-        <p style="color: var(--text-secondary); font-size: 0.95rem;">
-            Upload menus, price sheets, or brochures. The bot extracts text passages and automatically uses them as smart fallbacks.
-        </p>
+    <div class="stat-item">
+        <span class="stat-value">100%</span>
+        <span class="stat-label">Private Data</span>
     </div>
+</section>
+
+<section class="how-it-works reveal">
+    <div class="section-header">
+        <h2>How BotBuilder Works</h2>
+        <p style="color: var(--color-text-muted);">Three simple steps from a Google Maps link to a live assistant.</p>
+    </div>
+
+    <div class="work-step">
+        <div class="step-illustration">
+            <div class="illustration-box">
+                <svg width="150" height="150" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="40" stroke="var(--color-secondary)" stroke-width="2" fill="none"/>
+                    <path d="M30 50H70M50 30V70" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="35" y="35" width="30" height="30" rx="4" stroke="var(--color-secondary)" stroke-width="2" fill="var(--color-primary-soft)"/>
+                </svg>
+            </div>
+        </div>
+        <div class="step-content">
+            <h3>01. Connect Your Presence</h3>
+            <p>Simply paste your Google Maps URL. Our AI agents automatically extract your business name, address, hours, and services, eliminating manual data entry.</p>
+        </div>
+    </div>
+
+    <div class="work-step">
+        <div class="step-illustration">
+            <div class="illustration-box">
+                <svg width="150" height="150" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 80L50 20L80 80Z" stroke="var(--color-secondary)" stroke-width="2" fill="none"/>
+                    <circle cx="50" cy="50" r="15" fill="var(--color-primary)"/>
+                    <path d="M30 70H70" stroke="var(--color-secondary)" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+        <div class="step-content">
+            <h3>02. Deploy to Telegram</h3>
+            <p>Connect your bot token and go live. Your customers get a professional experience, and you get a 24/7 assistant that never misses a detail.</p>
+        </div>
+    </div>
+</section>
+
+<section class="hero-section reveal" style="background: var(--color-primary-soft); border-radius: var(--radius-lg); margin-bottom: var(--space-16);">
+    <h2 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: var(--space-6);">Ready to elevate your business?</h2>
+    <p class="hero-subtitle" style="margin-bottom: var(--space-12);">Join hundreds of businesses automating their customer support with precision and elegance.</p>
+    <a href="/create" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Create Your Bot Now</a>
 </section>
 {% endblock %}

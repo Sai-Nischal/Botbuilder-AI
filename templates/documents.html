@@ -1,64 +1,138 @@
 {% extends "base.html" %}
 
-{% block title %}PDF Documents - {{ business.name }}{% endblock %}
+{% block title %}PDF Intelligence - {{ business.name }}{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<style>
+    .doc-container {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+    .doc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-12);
+    }
+    .doc-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-2);
+    }
+    .upload-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        margin-bottom: var(--space-12);
+        box-shadow: var(--shadow-soft);
+    }
+    .upload-section h3 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        margin-bottom: var(--space-4);
+    }
+    .doc-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+    .doc-item {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-6);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition-fast);
+    }
+    .doc-item:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-soft);
+    }
+    .doc-info {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+    }
+    .doc-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--color-primary-soft);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-primary);
+    }
+    .doc-details h4 {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        margin: 0;
+    }
+    .doc-details p {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+</style>
+
+<div class="doc-container reveal">
+    <div class="doc-header">
         <div>
-            <h1 style="font-family: var(--font-heading); font-size: 2rem;">PDF Document Intelligence</h1>
-            <p style="color: var(--text-secondary);">Upload menus, price lists, or brochures to train your bot with fallback passages.</p>
+            <h1>Document Intelligence</h1>
+            <p style="color: var(--color-text-muted);">Train your bot with PDF brochures, menus, or price lists.</p>
         </div>
-        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Portfolio</a>
     </div>
 
-    <!-- Document Upload Card -->
-    <div class="glass-card" style="margin-bottom: 2rem;">
-        <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 0.5rem;">Upload New PDF Document</h3>
-        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
-            Limit: Max 10 MB per file, up to 5 files per business. Text-based PDFs only (scanned PDFs without OCR are rejected).
+    <div class="upload-section reveal">
+        <h3>Upload Knowledge Source</h3>
+        <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: var(--space-6);">
+            Max 10 MB per file. We extract a high-dimensional vector index from your documents for instant fallback answers.
         </p>
 
         <form action="/documents/{{ business.business_id }}" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
-                <label class="form-label">Select PDF File</label>
+                <label class="form-label">PDF Document</label>
                 <input type="file" name="pdf_file" accept=".pdf" class="form-control" required style="padding: 0.6rem;">
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">
-                📤 Upload & Process Document
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-4);">
+                📤 Process & Index Document
             </button>
         </form>
     </div>
 
-    <!-- Uploaded Documents List -->
-    <div class="glass-card">
-        <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">Uploaded Documents ({{ documents|length }}/5)</h3>
+    <div class="doc-list reveal">
+        <h3 style="font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: var(--space-6);">Indexed Documents ({{ documents|length }}/5)</h3>
 
         {% if documents %}
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                {% for doc in documents %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem;">
-                        <div>
-                            <div style="font-weight: 600; color: var(--text-primary);">📄 {{ doc.filename }}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                Size: {{ (doc.file_size / 1024) | round(1) }} KB | Passages Extracted: <strong>{{ doc.passages|length }}</strong>
-                            </div>
+            {% for doc in documents %}
+                <div class="doc-item">
+                    <div class="doc-info">
+                        <div class="doc-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2H4"></path><path d="M16 2h6a2 2 0 0 0 2-2v16a2 2 0 0 1-2 2H14"></path><path d="M12 18V2"></path><path d="M12 18l-4-4h8l-4 4z"></path></svg>
                         </div>
-
-                        <form action="/documents/{{ business.business_id }}/delete/{{ doc.id }}" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this document and rebuild index?')">
-                                Delete
-                            </button>
-                        </form>
+                        <div class="doc-details">
+                            <h4>{{ doc.filename }}</h4>
+                            <p>{{ (doc.file_size / 1024) | round(1) }} KB • {{ doc.passages|length }} Passages Extracted</p>
+                        </div>
                     </div>
-                {% endfor %}
-            </div>
+                    <form action="/documents/{{ business.business_id }}/delete/{{ doc.id }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove this document and rebuild index?')">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
         {% else %}
-            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">
-                No PDF documents uploaded yet. Upload a document above to add intelligent passage fallbacks!
-            </p>
+            <div class="glass-card" style="text-align: center; padding: var(--space-8);">
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">No documents uploaded yet. Your bot will rely on core FAQs.</p>
+            </div>
         {% endif %}
     </div>
 </div>

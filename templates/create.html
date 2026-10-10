@@ -3,20 +3,154 @@
 {% block title %}Create Business Chatbot - BotBuilder{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <div class="glass-card">
-        <h1 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">Create Your Business Chatbot</h1>
-        {% if error %}
-            <div style="margin-bottom: 1.5rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 1rem; border-radius: var(--radius-md); font-weight: 600;">
-                ⚠️ {{ error }}
-            </div>
-        {% endif %}
+<style>
+    .create-container {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+    .form-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        margin-bottom: var(--space-12);
+        box-shadow: var(--shadow-soft);
+    }
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-6);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+    .section-title span {
+        color: var(--color-primary);
+        font-size: 1.2rem;
+    }
+    .research-box {
+        background: var(--color-primary-soft);
+        border: 1px solid var(--color-primary);
+        border-radius: var(--radius-md);
+        padding: var(--space-6);
+        margin-bottom: var(--space-8);
+    }
+    .research-box-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-4);
+    }
+    .research-box-title {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: var(--color-primary);
+        font-size: 1.1rem;
+    }
+    .research-box-p {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--space-4);
+    }
+    .research-input-group {
+        display: flex;
+        gap: var(--space-3);
+    }
+    .research-input-group .form-control {
+        border-color: var(--color-primary);
+    }
+    .research-input-group .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(107, 118, 176, 0.1);
+    }
+    .stepper-container {
+        margin-top: var(--space-6);
+        border-top: 1px solid var(--color-border);
+        padding-top: var(--space-6);
+    }
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        transition: var(--transition-fast);
+    }
+    .step-item.active {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+    .step-item.completed {
+        color: var(--color-success);
+    }
+    .step-icon {
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid currentColor;
+        font-size: 0.7rem;
+    }
+    .bot-token-guide {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        margin-top: var(--space-8);
+    }
+    .guide-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-6);
+        margin-top: var(--space-6);
+    }
+    .guide-step {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-4);
+        text-align: center;
+    }
+    .guide-step img {
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-sm);
+        margin-bottom: var(--space-3);
+    }
+    .guide-step-label {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--color-primary);
+        margin-bottom: var(--space-2);
+        display: block;
+    }
+    .guide-step-text {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+    }
+</style>
 
-        <form action="/create" method="POST" id="create-bot-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="create-container reveal">
+    <div style="text-align: center; margin-bottom: var(--space-12);">
+        <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: var(--space-2);">Create Your Assistant</h1>
+        <p style="color: var(--color-text-muted);">Fill in your business details to generate a professional Telegram bot.</p>
+    </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 1rem;">1. Basic Business Details</h3>
+    {% if error %}
+        <div class="alert alert-error reveal">
+            ⚠️ {{ error }}
+        </div>
+    {% endif %}
 
+    <form action="/create" method="POST" id="create-bot-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <!-- Section 1: Basic Details -->
+        <div class="form-section">
+            <div class="section-title"><span>01</span> Basic Information</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Business Name *</label>
@@ -24,183 +158,508 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Industry / Category</label>
-                    <input type="text" id="field-industry" name="industry" class="form-control" placeholder="e.g. Healthcare, Dental, College, Shopping Mall">
+                    <input type="text" id="field-industry" name="industry" class="form-control" placeholder="e.g. Healthcare, Dental">
                 </div>
             </div>
-
             <div class="form-group">
-                <label class="form-label">Short Business Description</label>
-                <textarea id="field-description" name="description" class="form-control" placeholder="Describe your business services, specialties, or campus features..."></textarea>
+                <label class="form-label">Business Description</label>
+                <textarea id="field-description" name="description" class="form-control" placeholder="Describe your services, specialties, or campus features..."></textarea>
             </div>
+        </div>
 
-            <!-- GOOGLE MAPS RESEARCH SECTION -->
-            <div style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15)); border: 2px solid var(--accent-cyan); border-radius: var(--radius-md); padding: 1.25rem; margin: 1.5rem 0; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
-                    <label class="form-label" style="font-weight: 700; font-size: 1.05rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                        📍 Google Maps Location URL
-                        <span style="color: #06b6d4; font-size: 0.8rem; padding: 0.2rem 0.6rem; background: rgba(6, 182, 212, 0.25); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                            ⭐ Priority #1 Feature
-                        </span>
-                    </label>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.4;">
-                    Paste your Google Maps location URL below. Our AI Agent will conduct a multi-stage web research pipeline to autofill your details.
-                </p>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <input type="url" id="field-gmaps-url" name="gmaps_url" class="form-control" placeholder="e.g. https://maps.app.goo.gl/... or https://maps.google.com/?q=..." style="flex: 1; min-width: 250px; font-size: 0.95rem; border-color: var(--accent-cyan);">
-                    <button type="button" id="btn-fetch-gmaps" class="btn btn-primary" onclick="autoFillFromGMaps()" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #06b6d4, #2563eb);">
-                        ⚡ Start AI Research
-                    </button>
-                </div>
+        <!-- Google Maps Research Section -->
+        <div class="research-box reveal" id="gmaps-research-box">
+            <div class="research-box-header">
+                <div class="research-box-title">📍 AI-Powered Autofill</div>
+                <span class="badge badge-success">Priority Feature</span>
+            </div>
+            <p class="research-box-p">Search and select your business from Google Maps. We'll extract your details automatically.</p>
 
-                <!-- RESEARCH PROGRESS STEPPER -->
-                <div id="research-stepper" style="display: none; margin-top: 1.5rem; font-family: var(--font-sans);">
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <div id="step-identifying" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
-                            <span class="step-icon">⚪</span> Identifying Business...
-                        </div>
-                        <div id="step-web_research" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
-                            <span class="step-icon">⚪</span> Researching Web Sources...
-                        </div>
-                        <div id="step-deep_research" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
-                            <span class="step-icon">⚪</span> Deep Dive (Services & Pricing)...
-                        </div>
-                        <div id="step-verifying" style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">
-                            <span class="step-icon">⚪</span> Verifying & Cross-Checking...
-                        </div>
+            <!-- Google Maps Autocomplete Search -->
+            <div id="gmaps-autocomplete-section" style="display: none;">
+                <div class="research-input-group" style="margin-bottom: var(--space-4); position: relative;">
+                    <div style="flex: 1; position: relative;">
+                        <input type="text" id="gmaps-search-input" class="form-control" placeholder="Search your business on Google Maps..." style="border-color: var(--color-primary); padding-left: 2.5rem;" autocomplete="off">
+                        <svg style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--color-primary); pointer-events: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <!-- Server-Side Places Search Results Dropdown -->
+                        <div id="gmaps-search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface, #ffffff); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; max-height: 250px; overflow-y: auto; margin-top: 4px;"></div>
                     </div>
                 </div>
-                <div id="gmaps-status" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+                <!-- Map Container -->
+                <div id="gmaps-map-container" style="width: 100%; height: 320px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--color-border); position: relative; background: var(--color-bg);">
+                    <div id="gmaps-map" style="width: 100%; height: 100%;"></div>
+                    <div id="gmaps-map-placeholder" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); color: var(--color-text-muted); pointer-events: none;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.4;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span style="font-size: 0.9rem;">Search above to find your business on the map</span>
+                    </div>
+                </div>
+                <!-- Selected Place Info -->
+                <div id="selected-place-info" style="display: none; margin-top: var(--space-4); padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-success); border-radius: var(--radius-md); animation: fadeIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);">
+                        <div style="flex: 1;">
+                            <div id="selected-place-name" style="font-weight: 700; font-size: 1.05rem; color: var(--color-text-main);"></div>
+                            <div id="selected-place-address" style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 2px;"></div>
+                            <div id="selected-place-rating" style="font-size: 0.8rem; color: var(--color-primary); margin-top: 4px;"></div>
+                        </div>
+                        <button type="button" id="btn-fetch-details" class="btn btn-primary" onclick="fetchPlaceDetails()">
+                            ⚡ Autofill Form
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">2. Contact & Opening Hours</h3>
+            <!-- Fallback: URL paste (shown when no API key) -->
+            <div id="gmaps-url-fallback" style="display: none;">
+                <div class="research-input-group">
+                    <input type="url" id="field-gmaps-url" name="gmaps_url" class="form-control" placeholder="https://maps.app.goo.gl/..." style="flex: 1;">
+                    <button type="button" id="btn-fetch-gmaps" class="btn btn-primary" onclick="autoFillFromGMaps()">
+                        ⚡ Research
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading / Status -->
+            <div id="research-stepper" style="display: none;" class="stepper-container">
+                <div id="step-identifying" class="step-item"><span class="step-icon">1</span> Identifying Business...</div>
+                <div id="step-web_research" class="step-item"><span class="step-icon">2</span> Fetching Details from Google...</div>
+                <div id="step-deep_research" class="step-item"><span class="step-icon">3</span> Extracting Services & Hours...</div>
+                <div id="step-verifying" class="step-item"><span class="step-icon">4</span> Populating Form...</div>
+            </div>
+            <div id="gmaps-status" style="margin-top: var(--space-4); font-size: 0.85rem; font-weight: 600; display: none; text-align: center;"></div>
+        </div>
+
+        <!-- Section 2: Contact & Hours -->
+        <div class="form-section">
+            <div class="section-title"><span>02</span> Contact & Hours</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="text" id="field-phone" name="phone" class="form-control" placeholder="e.g. +1 (555) 019-2834">
+                    <input type="text" id="field-phone" name="phone" class="form-control" placeholder="+1 (555) 000-0000">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <input type="email" id="field-email" name="email" class="form-control" placeholder="info@sunrisedental.com">
+                    <input type="email" id="field-email" name="email" class="form-control" placeholder="info@business.com">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label class="form-label">Physical Address / Location</label>
-                    <input type="text" id="field-address" name="address" class="form-control" placeholder="e.g. 123 Main Street, Suite 400">
+                    <label class="form-label">Physical Address</label>
+                    <input type="text" id="field-address" name="address" class="form-control" placeholder="123 Street, City, Zip">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Website URL</label>
-                    <input type="url" id="field-website" name="website" class="form-control" placeholder="https://sunrisedental.com">
+                    <input type="url" id="field-website" name="website" class="form-control" placeholder="https://business.com">
                 </div>
             </div>
-
             <div class="grid-2">
                 <div class="form-group">
-                    <label class="form-label">Mon-Sat Opening Hours</label>
-                    <input type="text" id="field-mon-sat-hours" name="mon_sat_hours" class="form-control" placeholder="e.g. 9:00-18:00">
+                    <label class="form-label">Mon-Sat Hours</label>
+                    <input type="text" id="field-mon-sat-hours" name="mon_sat_hours" class="form-control" placeholder="e.g. 09:00 - 18:00">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Sunday Hours</label>
-                    <input type="text" id="field-sun-hours" name="sun_hours" class="form-control" placeholder="e.g. Closed or 10:00-14:00">
+                    <input type="text" id="field-sun-hours" name="sun_hours" class="form-control" placeholder="e.g. Closed">
                 </div>
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">3. Offered Services & Pricing</h3>
+        <!-- Section 3: Services -->
+        <div class="form-section">
+            <div class="section-title"><span>03</span> Services & Pricing</div>
             <div id="services-container">
                 <div class="grid-3 service-row form-group" style="align-items: end;">
                     <div>
                         <label class="form-label">Service Name *</label>
-                        <input type="text" name="service_name[]" class="form-control service-name-input" placeholder="e.g. Teeth Cleaning" required>
+                        <input type="text" name="service_name[]" class="form-control service-name-input" placeholder="e.g. Consultation" required>
                     </div>
                     <div>
                         <label class="form-label">Price</label>
-                        <input type="text" name="service_price[]" class="form-control service-price-input" placeholder="e.g. $80">
+                        <input type="text" name="service_price[]" class="form-control service-price-input" placeholder="e.g. $50">
                     </div>
                     <div>
-                        <label class="form-label">Details (optional)</label>
-                        <input type="text" name="service_details[]" class="form-control service-details-input" placeholder="e.g. 30 mins session">
+                        <label class="form-label">Details</label>
+                        <input type="text" name="service_details[]" class="form-control service-details-input" placeholder="e.g. 30 min session">
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="addServiceRow('services-container')" style="margin-bottom: 1.5rem;">
-                + Add Another Service
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addServiceRow('services-container')" style="margin-bottom: var(--space-6);">
+                + Add Service
             </button>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">4. Company Policies</h3>
+        <!-- Section 4: Policies -->
+        <div class="form-section">
+            <div class="section-title"><span>04</span> Company Policies</div>
             <div class="form-group">
                 <label class="form-label">Refund / Cancellation Policy</label>
-                <textarea id="field-refund-policy" name="refund_policy" class="form-control" placeholder="e.g. Full refund up to 24 hours prior to appointment."></textarea>
+                <textarea id="field-refund-policy" name="refund_policy" class="form-control" placeholder="e.g. Full refund within 24h..."></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Booking Policy</label>
-                <textarea id="field-booking-policy" name="booking_policy" class="form-control" placeholder="e.g. Bookings can be made online via phone."></textarea>
+                <textarea id="field-booking-policy" name="booking_policy" class="form-control" placeholder="e.g. Appointments required..."></textarea>
             </div>
             <div class="form-group">
                 <label class="form-label">Accepted Payment Methods</label>
-                <input type="text" id="field-payment-methods" name="payment_methods" class="form-control" placeholder="e.g. Cash, Credit Cards, Apple Pay">
+                <input type="text" id="field-payment-methods" name="payment_methods" class="form-control" placeholder="e.g. Cash, Visa, PayPal">
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">🤖 5. Custom Greeting Messages</h3>
+        <!-- Section 5: Greeting -->
+        <div class="form-section">
+            <div class="section-title"><span>05</span> Welcome Messaging</div>
             <div class="form-group">
                 <label class="form-label">Welcome Message (/start)</label>
-                <textarea id="field-welcome-message" name="welcome_message" class="form-control" placeholder="Welcome to Sunrise Dental Clinic! Choose an option below or type any question:"></textarea>
+                <textarea id="field-welcome-message" name="welcome_message" class="form-control" placeholder="Hi! Welcome to our business..."></textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">Fallback Message (When answer is unknown)</label>
-                <textarea id="field-fallback-message" name="fallback_message" class="form-control" placeholder="I couldn't find an exact answer. Please contact us directly at info@sunrisedental.com"></textarea>
+                <label class="form-label">Fallback Message</label>
+                <textarea id="field-fallback-message" name="fallback_message" class="form-control" placeholder="I'm sorry, I couldn't find that..."></textarea>
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">🤖 6. Connect Dedicated Telegram Bot *</h3>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                Each business gets its own dedicated Telegram Bot with its own custom Name, Bio, Description, and Header!
+    <!-- Section 6: Bot Connection -->
+        <div class="form-section">
+            <div class="section-title"><span>06</span> Bot Integration</div>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: var(--space-6);">
+                Each business gets a dedicated bot. Connect yours via the HTTP API Token from @BotFather.
             </p>
 
-            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                    <h4 style="font-size: 1rem; color: #fff; margin: 0; font-family: var(--font-heading);">📱 Mobile Walkthrough: How to get & copy your Bot Token</h4>
-                    <a href="https://t.me/BotFather" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600;">
-                        ✈️ Open @BotFather on Telegram
-                    </a>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; text-align: center;">
-                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
-                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 1: Start BotFather</div>
-                        <img src="/static/images/botfather_step1.png" alt="Step 1 - Tap Start Bot in BotFather" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Open <a href="https://t.me/BotFather" target="_blank" style="color: #60a5fa; font-weight: 600;">@BotFather</a> and tap <strong>Start Bot</strong> button at bottom.</div>
+            <div class="bot-token-guide">
+                <h4 style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: var(--space-4);">Quick Setup Guide</h4>
+                <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: var(--space-6);">
+                    Follow these steps to get your API token from Telegram:
+                </p>
+                <div class="guide-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4);">
+                    <div class="guide-step" style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface); text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        <span class="guide-step-label" style="font-weight: 700; color: var(--color-primary); font-size: 0.85rem; display: block; margin-bottom: var(--space-2);">Step 1: Start</span>
+                        <div style="margin-bottom: var(--space-3); border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); max-height: 280px; background: #000;">
+                            <img src="/static/images/botfather_step1.png" alt="BotFather Start Step" style="width: 100%; height: auto; max-height: 280px; display: block; object-fit: contain; margin: 0 auto;">
+                        </div>
+                        <a href="https://t.me/BotFather" target="_blank" style="text-decoration: none; color: var(--color-primary); font-weight: 700; display: inline-block; margin-bottom: var(--space-2);">Open @BotFather →</a>
+                        <div class="guide-step-text" style="font-size: 0.8rem; color: var(--color-text-muted);">Send the <code style="background: var(--color-primary-soft); padding: 2px 4px; border-radius: 4px;">/start</code> command to begin.</div>
                     </div>
-
-                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
-                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 2: Tap /newbot</div>
-                        <img src="/static/images/botfather_step2.png" alt="Step 2 - Tap /newbot command" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Tap or type <code style="background: #1e293b; color: #a7f3d0; padding: 0.1rem 0.3rem; border-radius: 3px;">/newbot</code> to create a new bot account.</div>
+                    <div class="guide-step" style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface); text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        <span class="guide-step-label" style="font-weight: 700; color: var(--color-primary); font-size: 0.85rem; display: block; margin-bottom: var(--space-2);">Step 2: Create</span>
+                        <div style="margin-bottom: var(--space-3); border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); max-height: 280px; background: #000;">
+                            <img src="/static/images/botfather_step2.png" alt="BotFather New Bot Step" style="width: 100%; height: auto; max-height: 280px; display: block; object-fit: contain; margin: 0 auto;">
+                        </div>
+                        <div style="font-weight: 600; color: var(--color-text-main); margin-bottom: var(--space-2); font-size: 0.9rem;">Send <code style="background: var(--color-primary-soft); padding: 2px 4px; border-radius: 4px;">/newbot</code></div>
+                        <div class="guide-step-text" style="font-size: 0.8rem; color: var(--color-text-muted);">Follow instructions to give your bot a name and username.</div>
                     </div>
-
-                    <div style="background: rgba(255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
-                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">STEP 3: Copy HTTP API Token</div>
-                        <img src="/static/images/botfather_step3.png" alt="Step 3 - Enter Name, Username and copy HTTP API Token" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Type Name & Username ending in <code style="color: #fef08a;">bot</code>, then tap to copy the HTTP API token string.</div>
+                    <div class="guide-step" style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface); text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        <span class="guide-step-label" style="font-weight: 700; color: var(--color-primary); font-size: 0.85rem; display: block; margin-bottom: var(--space-2);">Step 3: Copy Token</span>
+                        <div style="margin-bottom: var(--space-3); border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); max-height: 280px; background: #000;">
+                            <img src="/static/images/botfather_step3.png" alt="BotFather Token Step" style="width: 100%; height: auto; max-height: 280px; display: block; object-fit: contain; margin: 0 auto;">
+                        </div>
+                        <div style="font-weight: 600; color: var(--color-text-main); margin-bottom: var(--space-2); font-size: 0.9rem;">Copy API Token</div>
+                        <div class="guide-step-text" style="font-size: 0.8rem; color: var(--color-text-muted);">BotFather will send you a token like <code style="background: var(--color-primary-soft); padding: 2px 4px; border-radius: 4px;">8580366269:...</code></div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" style="font-weight: 700; font-size: 1.05rem;">Paste Telegram Bot Token Here *</label>
-                <input type="text" name="bot_token" class="form-control" placeholder="e.g. 8580366269:AAFdX...your-token..." required style="font-family: monospace; font-size: 1rem; border-color: var(--accent-primary);">
-                <small style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
-                    We automatically sync your Bot Name, Description, and Bio directly on Telegram using this token!
-                </small>
+            <div class="form-group" style="margin-top: var(--space-12);">
+                <label class="form-label">Paste Your Telegram Bot Token *</label>
+                <input type="text" name="bot_token" class="form-control" placeholder="e.g. 123456789:ABCdef..." required style="font-family: monospace; border: 2px solid var(--color-primary);">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--space-2);">Keep this token secret. It allows us to send messages on behalf of your bot.</p>
             </div>
+        </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1.1rem; font-weight: 700;">
-                🚀 Create Dedicated Chatbot & Generate FAQs
-            </button>
-        </form>
-    </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-8); padding: 1.25rem; font-size: 1.1rem; font-weight: 700;">
+            🚀 Launch My AI Chatbot
+        </button>
+    </form>
 </div>
 
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(107, 118, 176, 0.3); }
+        50% { box-shadow: 0 0 0 8px rgba(107, 118, 176, 0); }
+    }
+    #gmaps-map-container {
+        transition: border-color 0.3s ease;
+    }
+    #gmaps-map-container.map-active {
+        border-color: var(--color-primary);
+    }
+    #gmaps-search-input:focus {
+        box-shadow: 0 0 0 3px rgba(107, 118, 176, 0.15);
+    }
+    #selected-place-info {
+        animation: fadeIn 0.3s ease;
+    }
+    .pac-container {
+        z-index: 10000 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+        border: 1px solid rgba(107, 118, 176, 0.2) !important;
+        font-family: inherit !important;
+        margin-top: 4px !important;
+    }
+    .pac-item {
+        padding: 8px 12px !important;
+        font-size: 0.9rem !important;
+        border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+        cursor: pointer !important;
+    }
+    .pac-item:hover {
+        background: rgba(107, 118, 176, 0.08) !important;
+    }
+    .pac-item-selected {
+        background: rgba(107, 118, 176, 0.12) !important;
+    }
+    .autofill-highlight {
+        animation: highlightField 1.5s ease;
+    }
+    @keyframes highlightField {
+        0% { box-shadow: 0 0 0 0 rgba(107, 118, 176, 0.5); }
+        30% { box-shadow: 0 0 0 4px rgba(107, 118, 176, 0.3); }
+        100% { box-shadow: none; }
+    }
+</style>
+
 <script>
+// --- State ---
+let gmapsMap = null;
+let gmapsMarker = null;
+let gmapsAutocomplete = null;
+let selectedPlaceId = null;
+let googleMapsApiKey = null;
+
+// Handle Google Maps JS auth failure (e.g. key has JS SDK restricted or missing billing)
+window.gm_authFailure = function() {
+    console.warn('Google Maps JS SDK authentication failed. Falling back to Server Places Search.');
+    const mapContainer = document.getElementById('gmaps-map-container');
+    if (mapContainer) mapContainer.style.display = 'none';
+};
+
+// --- Init: Load Google Maps API key and bootstrap search ---
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const configResp = await fetch('/api/places/config');
+        const config = await configResp.json();
+
+        if (config.success && config.api_key) {
+            googleMapsApiKey = config.api_key;
+            document.getElementById('gmaps-autocomplete-section').style.display = 'block';
+            document.getElementById('gmaps-url-fallback').style.display = 'none';
+            setupServerPlacesSearch();
+            loadGoogleMapsSDK(googleMapsApiKey);
+        } else {
+            // Fallback to URL paste mode
+            document.getElementById('gmaps-autocomplete-section').style.display = 'none';
+            document.getElementById('gmaps-url-fallback').style.display = 'block';
+        }
+    } catch (e) {
+        console.warn('Could not load Places config, falling back to URL mode:', e);
+        document.getElementById('gmaps-autocomplete-section').style.display = 'none';
+        document.getElementById('gmaps-url-fallback').style.display = 'block';
+    }
+});
+
+let searchDebounceTimer = null;
+function setupServerPlacesSearch() {
+    const input = document.getElementById('gmaps-search-input');
+    const resultsDiv = document.getElementById('gmaps-search-results');
+    if (!input || !resultsDiv) return;
+
+    input.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        clearTimeout(searchDebounceTimer);
+        if (val.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        searchDebounceTimer = setTimeout(async () => {
+            try {
+                const resp = await fetch(`/api/places/search?query=${encodeURIComponent(val)}`);
+                const data = await resp.json();
+                if (data.success && data.results && data.results.length > 0) {
+                    renderServerSearchResults(data.results);
+                } else {
+                    resultsDiv.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Places search fetch error:', err);
+            }
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!resultsDiv.contains(e.target) && e.target !== input) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+}
+
+function renderServerSearchResults(results) {
+    const resultsDiv = document.getElementById('gmaps-search-results');
+    if (!resultsDiv) return;
+    resultsDiv.innerHTML = '';
+    results.forEach(res => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--color-border); font-size: 0.9rem; transition: background 0.15s ease;';
+        item.innerHTML = `
+            <div style="font-weight: 600; color: var(--color-text-main);">${escapeHtml(res.name)}</div>
+            <div style="font-size: 0.8rem; color: var(--color-text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHtml(res.address)}</div>
+        `;
+        item.onmouseenter = () => item.style.background = 'var(--color-bg-hover, rgba(0,0,0,0.05))';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => {
+            selectedPlaceId = res.id;
+            document.getElementById('gmaps-search-input').value = res.name;
+            resultsDiv.style.display = 'none';
+
+            document.getElementById('selected-place-name').textContent = res.name;
+            document.getElementById('selected-place-address').textContent = res.address;
+            document.getElementById('selected-place-rating').textContent = '📍 Selected from Google Places';
+            document.getElementById('selected-place-info').style.display = 'block';
+        };
+        resultsDiv.appendChild(item);
+    });
+    resultsDiv.style.display = 'block';
+}
+
+function loadGoogleMapsSDK(apiKey) {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+}
+
+function initGoogleMaps() {
+    // Initialize the map centered on India (a good default)
+    const defaultCenter = { lat: 20.5937, lng: 78.9629 };
+    gmapsMap = new google.maps.Map(document.getElementById('gmaps-map'), {
+        center: defaultCenter,
+        zoom: 5,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true,
+        styles: [
+            { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+        ],
+    });
+
+    // Initialize Autocomplete
+    const input = document.getElementById('gmaps-search-input');
+    gmapsAutocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['establishment'],
+        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'rating', 'user_ratings_total', 'types'],
+    });
+
+    // Listen for place selection
+    gmapsAutocomplete.addListener('place_changed', () => {
+        const place = gmapsAutocomplete.getPlace();
+        if (!place.geometry || !place.geometry.location) {
+            return;
+        }
+
+        // Store place_id for API call
+        selectedPlaceId = place.place_id;
+
+        // Move map to the selected place
+        gmapsMap.setCenter(place.geometry.location);
+        gmapsMap.setZoom(17);
+        document.getElementById('gmaps-map-container').classList.add('map-active');
+
+        // Remove placeholder
+        const placeholder = document.getElementById('gmaps-map-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+
+        // Update marker
+        if (gmapsMarker) gmapsMarker.setMap(null);
+        gmapsMarker = new google.maps.Marker({
+            map: gmapsMap,
+            position: place.geometry.location,
+            title: place.name,
+            animation: google.maps.Animation.DROP,
+        });
+
+        // Show selected place info card
+        const infoDiv = document.getElementById('selected-place-info');
+        document.getElementById('selected-place-name').textContent = place.name || '';
+        document.getElementById('selected-place-address').textContent = place.formatted_address || '';
+
+        let ratingText = '';
+        if (place.rating) {
+            const stars = '★'.repeat(Math.round(place.rating)) + '☆'.repeat(5 - Math.round(place.rating));
+            ratingText = `${stars} ${place.rating}/5`;
+            if (place.user_ratings_total) ratingText += ` (${place.user_ratings_total} reviews)`;
+        }
+        document.getElementById('selected-place-rating').textContent = ratingText;
+        infoDiv.style.display = 'block';
+    });
+
+    // Also allow clicking on the map to search
+    gmapsMap.addListener('click', (e) => {
+        // Optionally could reverse geocode, but autocomplete is the primary flow
+    });
+}
+
+// --- Fetch full details from our backend (which calls Google Places API) ---
+async function fetchPlaceDetails() {
+    if (!selectedPlaceId) {
+        showStatus('⚠️ Please search and select a business first.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-fetch-details');
+    const stepper = document.getElementById('research-stepper');
+    const statusDiv = document.getElementById('gmaps-status');
+
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.innerHTML = '⏳ Fetching...';
+    statusDiv.style.display = 'none';
+    stepper.style.display = 'block';
+
+    try {
+        // Stage 1: Identifying
+        updateStepper('identifying');
+
+        const response = await fetch(`/api/places/details/${selectedPlaceId}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch place details.');
+        }
+
+        // Stage 2: Fetching
+        updateStepper('web_research');
+        await sleep(300);
+
+        // Stage 3: Extracting
+        updateStepper('deep_research');
+        await sleep(300);
+
+        // Stage 4: Populating
+        updateStepper('verifying');
+        fillFormWithResearchData(result.data);
+        await sleep(300);
+
+        updateStepper('completed');
+
+        showStatus('✨ Business profile autofilled from Google Maps! Review and adjust as needed.', 'success');
+
+    } catch (err) {
+        console.error(err);
+        showStatus('⚠️ ' + err.message, 'error');
+        stepper.style.display = 'none';
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = '⚡ Autofill Form';
+    }
+}
+
+// --- Legacy URL-based autofill (fallback) ---
 async function autoFillFromGMaps() {
     const urlInput = document.getElementById('field-gmaps-url');
     const statusDiv = document.getElementById('gmaps-status');
@@ -209,9 +668,7 @@ async function autoFillFromGMaps() {
     const gmapsUrl = urlInput.value.trim();
 
     if (!gmapsUrl) {
-        statusDiv.style.display = 'block';
-        statusDiv.style.color = '#f87171';
-        statusDiv.innerHTML = '⚠️ Please enter a Google Maps URL first.';
+        showStatus('⚠️ Please enter a Google Maps URL first.', 'error');
         return;
     }
 
@@ -233,101 +690,117 @@ async function autoFillFromGMaps() {
         }
 
         const data = result.data;
-        updateStepper('completed', 100);
+        updateStepper('completed');
         fillFormWithResearchData(data);
 
-        statusDiv.style.display = 'block';
-        statusDiv.style.color = '#4ade80';
-        statusDiv.innerHTML = '✨ Research complete! Your business profile has been autofilled using verified web sources.';
+        showStatus('✨ Research complete! Your business profile has been autofilled.', 'success');
         btn.disabled = false;
         btn.style.opacity = '1';
 
     } catch (err) {
         console.error(err);
-        statusDiv.style.display = 'block';
-        statusDiv.style.color = '#f87171';
-        statusDiv.innerHTML = '⚠️ ' + err.message;
+        showStatus('⚠️ ' + err.message, 'error');
         btn.disabled = false;
         btn.style.opacity = '1';
         stepper.style.display = 'none';
     }
 }
 
-function updateStepper(status, progress) {
+// --- Helpers ---
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('gmaps-status');
+    statusDiv.style.display = 'block';
+    statusDiv.style.color = type === 'success' ? 'var(--color-success)' : 'var(--color-error)';
+    statusDiv.innerHTML = message;
+}
+
+function updateStepper(status) {
     const stages = {
-        'identifying': { id: 'step-identifying', icon: '⚙️' },
-        'web_research': { id: 'step-web_research', icon: '⚙️' },
-        'deep_research': { id: 'step-deep_research', icon: '⚙️' },
-        'verifying': { id: 'step-verifying', icon: '⚙️' },
+        'identifying': { id: 'step-identifying', icon: '1' },
+        'web_research': { id: 'step-web_research', icon: '2' },
+        'deep_research': { id: 'step-deep_research', icon: '3' },
+        'verifying': { id: 'step-verifying', icon: '4' },
         'completed': { id: null, icon: null }
     };
 
+    // Reset all
     Object.values(stages).forEach(stage => {
         const el = document.getElementById(stage.id);
         if (el) {
-            el.style.color = 'var(--text-secondary)';
-            el.querySelector('.step-icon').innerHTML = '⚪';
+            el.classList.remove('active', 'completed');
+            el.style.color = 'var(--color-text-muted)';
+            el.querySelector('.step-icon').innerHTML = stage.icon;
         }
     });
 
     const order = ['identifying', 'web_research', 'deep_research', 'verifying'];
-    const currentIdx = order.indexOf(status);
-    if (currentIdx === -1) return;
+    const currentIdx = status === 'completed' ? order.length : order.indexOf(status);
 
-    for (let i = 0; i <= currentIdx; i++) {
+    for (let i = 0; i < order.length; i++) {
         const stageKey = order[i];
         const stage = stages[stageKey];
         const el = document.getElementById(stage.id);
         if (el) {
             if (i < currentIdx) {
-                el.style.color = '#4ade80';
+                el.style.color = 'var(--color-success)';
+                el.classList.add('completed');
                 el.querySelector('.step-icon').innerHTML = '✓';
-            } else {
-                el.style.color = '#38bdf8';
-                el.querySelector('.step-icon').innerHTML = stage.icon;
+            } else if (i === currentIdx) {
+                el.style.color = 'var(--color-primary)';
+                el.classList.add('active');
             }
         }
     }
 }
 
+function setFieldWithHighlight(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (!field || !value) return;
+    field.value = typeof value === 'object' ? (value.value || '') : value;
+    field.style.borderColor = 'var(--color-primary)';
+    field.classList.add('autofill-highlight');
+    setTimeout(() => field.classList.remove('autofill-highlight'), 1500);
+}
+
 function fillFormWithResearchData(data) {
-    const mapField = (fieldId, dataKey) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
-        const val = data[dataKey];
-        if (val) {
-            field.value = typeof val === 'object' ? (val.value || '') : val;
-            field.style.borderColor = 'var(--accent-cyan)';
-        }
-    };
+    setFieldWithHighlight('field-name', data.businessName || data.name);
+    setFieldWithHighlight('field-industry', data.category || data.industry);
+    setFieldWithHighlight('field-description', data.description);
+    setFieldWithHighlight('field-phone', data.phone);
+    setFieldWithHighlight('field-address', data.location || data.address);
+    setFieldWithHighlight('field-website', data.website);
+    setFieldWithHighlight('field-mon-sat-hours', data.timings || data.mon_sat_hours);
+    setFieldWithHighlight('field-sun-hours', data.sunTimings || data.sun_hours);
 
-    mapField('field-name', 'businessName');
-    mapField('field-industry', 'category');
-    mapField('field-phone', 'phone');
-    mapField('field-address', 'location');
-    mapField('field-mon-sat-hours', 'timings');
-    mapField('field-website', 'website');
-
+    // Services
     const container = document.getElementById('services-container');
     if (data.services && data.services.length > 0) {
         container.innerHTML = '';
         data.services.forEach((srv, idx) => {
+            const srvName = typeof srv.name === 'object' ? (srv.name.value || '') : (srv.name || '');
+            const srvPrice = typeof srv.price === 'object' ? (srv.price.value || '') : (srv.price || '');
+            const srvDetails = typeof srv.details === 'object' ? (srv.details.value || '') : (srv.details || '');
             const row = document.createElement('div');
             row.className = 'grid-3 service-row form-group';
             row.style.alignItems = 'end';
             row.innerHTML = `
                 <div>
                     <label class="form-label">Service Name *</label>
-                    <input type="text" name="service_name[]" class="form-control service-name-input" value="${srv.name || ''}" required>
+                    <input type="text" name="service_name[]" class="form-control service-name-input" value="${escapeHtml(srvName)}" required>
                 </div>
                 <div>
                     <label class="form-label">Price</label>
-                    <input type="text" name="service_price[]" class="form-control service-price-input" value="${srv.price || ''}">
+                    <input type="text" name="service_price[]" class="form-control service-price-input" value="${escapeHtml(srvPrice)}">
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <div style="flex: 1;">
                         <label class="form-label">Details</label>
-                        <input type="text" name="service_details[]" class="form-control service-details-input" value="${srv.details || ''}">
+                        <input type="text" name="service_details[]" class="form-control service-details-input" value="${escapeHtml(srvDetails)}">
                     </div>
                     ${idx > 0 ? `<button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.service-row').remove()" style="margin-bottom: 0.2rem;">✕</button>` : ''}
                 </div>
@@ -335,6 +808,13 @@ function fillFormWithResearchData(data) {
             container.appendChild(row);
         });
     }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function addServiceRow(containerId) {
@@ -362,5 +842,4 @@ function addServiceRow(containerId) {
     container.appendChild(row);
 }
 </script>
-
 {% endblock %}

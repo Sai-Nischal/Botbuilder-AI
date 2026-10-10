@@ -11,16 +11,17 @@
 <body>
     <nav class="navbar">
         <a href="/" class="brand-logo">
-            ⚡ <span class="brand-badge">BotBuilder</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span class="brand-badge">BotBuilder</span>
         </a>
         <ul class="nav-links">
             {% if current_user %}
-                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-                <li><a href="/create" class="nav-link">+ New Bot</a></li>
-                <li><span style="color: var(--text-muted); font-size: 0.85rem;">{{ current_user.email }}</span></li>
+                <li><a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="/create" class="nav-link {% if request.path == '/create' %}active{% endif %}">+ New Bot</a></li>
+                <li><span style="color: var(--color-text-muted); font-size: 0.85rem; font-family: var(--font-body);">{{ current_user.username }}</span></li>
                 <li><a href="/logout" class="btn btn-secondary btn-sm">Logout</a></li>
             {% else %}
-                <li><a href="/login" class="nav-link">Log In</a></li>
+                <li><a href="/login" class="nav-link {% if request.path == '/login' %}active{% endif %}">Log In</a></li>
                 <li><a href="/signup" class="btn btn-primary btn-sm">Get Started</a></li>
             {% endif %}
         </ul>
@@ -28,13 +29,13 @@
 
     <main class="main-container">
         {% if error %}
-            <div class="alert alert-error">
+            <div class="alert alert-error reveal">
                 ⚠️ {{ error }}
             </div>
         {% endif %}
 
         {% if success %}
-            <div class="alert alert-success">
+            <div class="alert alert-success reveal">
                 ✓ {{ success }}
             </div>
         {% endif %}
@@ -42,22 +43,38 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
-        <p style="margin-bottom: 0.75rem; font-weight: 600; color: var(--text-secondary); font-size: 0.95rem;">
-            Developed by <span style="color: var(--accent-cyan); font-weight: 700;">Sai-Nischal</span> © 2026
-        </p>
-        <div style="display: flex; justify-content: center; gap: 1.25rem; align-items: center; margin-top: 0.5rem;">
-            <a href="https://github.com/Sai-Nischal" target="_blank" title="GitHub Profile" style="color: #94a3b8; transition: color 0.2s ease; display: inline-flex; align-items: center;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='#94a3b8'">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            </a>
-
-            <a href="https://www.linkedin.com/in/sai-nischal-1988b532b?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" title="LinkedIn Profile" style="color: #94a3b8; transition: color 0.2s ease; display: inline-flex; align-items: center;" onmouseover="this.style.color='#0077b5'" onmouseout="this.style.color='#94a3b8'">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
-            </a>
-
-            <a href="mailto:sainischal04@gmail.com" title="Email Sainischal04@gmail.com" style="color: #94a3b8; transition: color 0.2s ease; display: inline-flex; align-items: center;" onmouseover="this.style.color='#ea4335'" onmouseout="this.style.color='#94a3b8'">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            </a>
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-brand-name">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <span>Sai-Nischal</span>
+                    </div>
+                    <div class="footer-tagline">
+                        BotBuilder • Intelligent Telegram Chatbot Platform
+                    </div>
+                </div>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/mr.sunny__444/" target="_blank" class="social-icon-btn" title="Instagram Profile" aria-label="Instagram">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                    <a href="https://github.com/Sai-Nischal" target="_blank" class="social-icon-btn" title="GitHub Profile" aria-label="GitHub">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/sai-nischal-1988b532b?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" class="social-icon-btn" title="LinkedIn Profile" aria-label="LinkedIn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>
+                    © 2026 <strong>Sai-Nischal</strong>. All Rights Reserved.
+                </div>
+                <div class="footer-badge">
+                    <span>✨ Crafted For Excellence</span>
+                </div>
+            </div>
         </div>
     </footer>
 </body>

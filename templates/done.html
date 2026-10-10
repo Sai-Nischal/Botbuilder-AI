@@ -1,47 +1,112 @@
 {% extends "base.html" %}
 
-{% block title %}Chatbot Published - {{ business.name }}{% endblock %}
+{% block title %}Your Bot is Live! - BotBuilder{% endblock %}
 
 {% block content %}
-<div style="max-width: 650px; margin: 2rem auto; text-align: center;">
-    <div class="glass-card">
-        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
-        <h1 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">Chatbot Published Successfully!</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-            Your chatbot for <strong>{{ business.name }}</strong> is live and indexed for similarity queries.
-        </p>
+<style>
+    .done-container {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: var(--space-16) 0;
+    }
+    .celebration-icon {
+        width: 100px;
+        height: 100px;
+        background: var(--color-primary-soft);
+        color: var(--color-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--space-8);
+        font-size: 3rem;
+        animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .done-title {
+        font-family: var(--font-heading);
+        font-size: 3rem;
+        margin-bottom: var(--space-4);
+        color: var(--color-text-main);
+    }
+    .done-subtitle {
+        font-size: 1.2rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--space-12);
+    }
+    .qr-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-12);
+        box-shadow: var(--shadow-soft);
+        display: inline-block;
+        margin-bottom: var(--space-12);
+    }
+    .qr-label {
+        display: block;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        margin-bottom: var(--space-6);
+        text-align: center;
+    }
+    .qr-container {
+        background: white;
+        padding: var(--space-4);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+        display: inline-block;
+    }
+    .qr-container img {
+        display: block;
+        max-width: 200px;
+        height: auto;
+    }
+    .bot-link-box {
+        background: var(--color-primary-soft);
+        border: 1px solid var(--color-primary);
+        border-radius: var(--radius-pill);
+        padding: 0.75rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-weight: 600;
+        color: var(--color-primary);
+        text-decoration: none;
+        transition: var(--transition-fast);
+        margin-top: var(--space-8);
+    }
+    .bot-link-box:hover {
+        background: var(--color-primary);
+        color: white;
+    }
+</style>
 
-        <div style="margin-bottom: 2rem;">
-            <label class="form-label" style="font-size: 1rem;">Direct Telegram Start Link</label>
-            <div style="display: flex; gap: 0.5rem; justify-content: center; max-width: 500px; margin: 0 auto;">
-                <input type="text" id="telegram-deep-link" class="form-control" value="{{ telegram_link }}" readonly style="text-align: center; font-weight: 600;">
-                <button type="button" class="btn btn-secondary btn-copy" data-copy-target="telegram-deep-link">
-                    Copy Link
-                </button>
-            </div>
-        </div>
+<div class="done-container reveal">
+    <div class="celebration-icon">✨</div>
+    <h1 class="done-title">Your Bot is Live!</h1>
+    <p class="done-subtitle">Congratulations! Your professional AI assistant is now active on Telegram and ready to serve your customers.</p>
 
-        <div style="margin-bottom: 2rem;">
-            <label class="form-label" style="font-size: 1rem; margin-bottom: 1rem;">Scan QR Code to Start Chat</label>
-            <div class="qr-container">
-                <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Telegram Chatbot QR Code">
-            </div>
+    <div class="qr-section reveal">
+        <span class="qr-label">Scan to Chat</span>
+        <div class="qr-container">
+            <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Bot QR Code">
         </div>
+    </div>
 
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-            <a href="{{ telegram_link }}" target="_blank" class="btn btn-primary">
-                💬 Open Chat on Telegram
-            </a>
-            <a href="/bot/{{ business.business_id }}" class="btn btn-secondary">
-                🤖 Connect Custom Bot Token
-            </a>
-            <a href="/documents/{{ business.business_id }}" class="btn btn-secondary">
-                📄 Upload Business PDFs
-            </a>
-            <a href="/dashboard" class="btn btn-secondary">
-                Dashboard
-            </a>
-        </div>
+    <div style="display: block; text-align: center;">
+        <a href="{{ telegram_link }}" target="_blank" class="bot-link-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            Open Bot in Telegram
+        </a>
+    </div>
+
+    <div style="margin-top: var(--space-16); text-align: center;">
+        <a href="/dashboard" class="btn btn-secondary btn-sm">Back to Portfolio</a>
     </div>
 </div>
 {% endblock %}

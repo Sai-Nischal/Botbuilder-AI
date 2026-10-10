@@ -55,7 +55,7 @@ if not DATABASE_URL:
 elif IS_VERCEL and DATABASE_URL == "sqlite:///./botbuilder.db":
     DATABASE_URL = "sqlite:////tmp/botbuilder.db"
 
-DEBUG = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
+DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
 ENABLE_MANAGED_BOTS = os.getenv("ENABLE_MANAGED_BOTS", "false").lower() in ("true", "1", "yes")
 
 # Matcher thresholds

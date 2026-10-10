@@ -38,8 +38,8 @@ def test_session_signing():
 
 
 def test_business_ownership(db_session):
-    user1 = User(email="owner1@test.com", password_hash="hash")
-    user2 = User(email="owner2@test.com", password_hash="hash")
+    user1 = User(username="owner1", email="owner1@test.com", password_hash="hash")
+    user2 = User(username="owner2", email="owner2@test.com", password_hash="hash")
     db_session.add_all([user1, user2])
     db_session.commit()
 

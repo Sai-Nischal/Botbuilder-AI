@@ -3,61 +3,182 @@
 {% block title %}Dashboard - BotBuilder{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-        <h1 style="font-family: var(--font-heading); font-size: 2.2rem;">Your Businesses & Bots</h1>
-        <p style="color: var(--text-secondary);">Manage chatbot configurations, review FAQs, and connect custom Telegram bots.</p>
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-12);
+    }
+    .header-text h1 {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-2);
+    }
+    .header-text p {
+        color: var(--color-text-muted);
+        font-size: 1rem;
+    }
+    .biz-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: var(--space-8);
+    }
+    .biz-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        transition: var(--transition-fast);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+    .biz-card:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-soft);
+        transform: translateY(-4px);
+    }
+    .biz-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--space-6);
+    }
+    .biz-name {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-1);
+    }
+    .biz-id {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        font-family: monospace;
+    }
+    .biz-info {
+        margin-bottom: var(--space-8);
+        font-size: 0.95rem;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        padding: var(--space-4) 0;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--space-2);
+    }
+    .info-label {
+        color: var(--color-text-muted);
+        font-weight: 500;
+    }
+    .info-value {
+        color: var(--color-text-main);
+        font-weight: 600;
+    }
+    .biz-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3);
+        margin-top: auto;
+    }
+    .biz-actions .btn {
+        text-align: center;
+        font-size: 0.8rem;
+        padding: var(--space-3) var(--space-4);
+    }
+    .action-full {
+        grid-column: span 2;
+    }
+    .empty-state {
+        text-align: center;
+        padding: var(--space-16) 2rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto var(--space-8);
+        background: var(--color-primary-soft);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--color-border);
+    }
+</style>
+
+<div class="dashboard-header reveal">
+    <div class="header-text">
+        <h1>Your Portfolio</h1>
+        <p>Manage your AI agents and business knowledge bases.</p>
     </div>
-    <a href="/create" class="btn btn-primary">+ Create New Chatbot</a>
+    <a href="/create" class="btn btn-primary reveal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        New Chatbot
+    </a>
 </div>
 
 {% if businesses %}
-    <div class="grid-2">
+    <div class="biz-grid">
         {% for biz in businesses %}
-            <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div class="biz-card reveal" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                <div class="biz-card-top">
                     <div>
-                        <h2 style="font-family: var(--font-heading); font-size: 1.4rem;">{{ biz.name }}</h2>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">ID: {{ biz.business_id }}</span>
+                        <h2 class="biz-name">{{ biz.name }}</h2>
+                        <span class="biz-id">ID: {{ biz.business_id }}</span>
                     </div>
                     {% if biz.is_published %}
-                        <span class="badge badge-success">✓ Published</span>
+                        <span class="badge badge-success">Published</span>
                     {% else %}
-                        <span class="badge badge-warning">● Draft</span>
+                        <span class="badge badge-warning">Draft</span>
                     {% endif %}
                 </div>
 
-                <div style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
-                    <p><strong>Industry:</strong> {{ biz.industry or 'General' }}</p>
-                    <p><strong>Bot Mode:</strong> 
-                        {% if biz.bot and biz.bot.mode == 'branded' %}
-                            <span style="color: var(--accent-cyan); font-weight: 600;">Branded (@{{ biz.bot.bot_username or 'custom' }})</span>
-                        {% else %}
-                            <span>Shared Platform Bot</span>
-                        {% endif %}
-                    </p>
+                <div class="biz-info">
+                    <div class="info-row">
+                        <span class="info-label">Industry</span>
+                        <span class="info-value">{{ biz.industry or 'General' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Bot Type</span>
+                        <span class="info-value">
+                            {% if biz.bot and biz.bot.mode == 'branded' %}
+                                Branded (@{{ biz.bot.bot_username or 'custom' }})
+                            {% else %}
+                                Shared Platform
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
 
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    <a href="/review/{{ biz.business_id }}" class="btn btn-secondary btn-sm">📝 Review FAQs</a>
-                    <a href="/edit/{{ biz.business_id }}" class="btn btn-secondary btn-sm">✏️ Edit Details</a>
-                    <a href="/bot/{{ biz.business_id }}" class="btn btn-secondary btn-sm">🤖 Custom Bot</a>
-                    <a href="/documents/{{ biz.business_id }}" class="btn btn-secondary btn-sm">📄 PDFs</a>
+                <div class="biz-actions">
+                    <a href="/review/{{ biz.business_id }}" class="btn btn-secondary">Review FAQs</a>
+                    <a href="/edit/{{ biz.business_id }}" class="btn btn-secondary">Edit Details</a>
+                    <a href="/bot/{{ biz.business_id }}" class="btn btn-secondary">Bot Settings</a>
+                    <a href="/documents/{{ biz.business_id }}" class="btn btn-secondary">Documents</a>
                     {% if biz.is_published %}
-                        <a href="/done/{{ biz.business_id }}" class="btn btn-primary btn-sm">🔗 Chat Link & QR</a>
+                        <a href="/done/{{ biz.business_id }}" class="btn btn-primary action-full">View Live Bot & QR</a>
                     {% endif %}
                 </div>
             </div>
         {% endfor %}
     </div>
 {% else %}
-    <div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
-        <h2 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">No Chatbots Created Yet</h2>
-        <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem;">
-            Get started by entering your business details. We'll generate FAQs and set up your Telegram bot in seconds.
+    <div class="empty-state reveal">
+        <div class="empty-state-icon">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        <h2 style="font-family: var(--font-heading); margin-bottom: var(--space-4);">No Chatbots Yet</h2>
+        <p style="color: var(--color-text-muted); margin-bottom: var(--space-8);">
+            Your portfolio is currently empty. Start by creating your first AI business agent.
         </p>
-        <a href="/create" class="btn btn-primary">+ Create Your First Chatbot</a>
+        <a href="/create" class="btn btn-primary">Create Your First Bot</a>
     </div>
 {% endif %}
 {% endblock %}

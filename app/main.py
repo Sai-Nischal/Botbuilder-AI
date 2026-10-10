@@ -20,35 +20,49 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.config import (
     PUBLIC_BASE_URL, TELEGRAM_BOT_TOKEN, GEMINI_API_KEY,
     ENABLE_MANAGED_BOTS, BUSINESSES_DIR, DOCS_DIR,
-    MAX_BOTS_PER_USER, get_current_bot_token
+    MAX_BOTS_PER_USER, get_current_bot_token,
+    GOOGLE_PLACES_API_KEY, DEBUG
 )
-from app.db import init_db, get_db, User, Business, Bot, Document, Passage
-from app.models import (
-    BusinessConfig, BotConfigSchema, ContactInfo, ServiceItem, PoliciesConfig,
-    FAQItem, ResearchResult, ResearchField
-)
-from app.security import (
-    hash_password, verify_password, sign_session, verify_session,
-    generate_csrf_token, verify_csrf_token, mask_bot_token, decrypt_bot_token, encrypt_bot_token
-)
-from app.auth import get_current_user, require_login, verify_business_ownership, SESSION_COOKIE_NAME
-from app.faq_generator import (
-    generate_layer1_faqs, enrich_faqs_with_llm, generate_faqs_for_business,
-    fetch_gmaps_info, run_business_research_pipeline
-)
-from app.gmaps_integration import run_gmaps_scraper
-from app.matcher import build_business_index, get_embedding_backend
-from app.bot_core import process_telegram_update
-from app.bot_providers import BotFatherProvider
-from app.documents import validate_pdf_bytes, extract_text_from_pdf, chunk_text_into_passages, extract_draft_faqs_from_pdf_llm
-from app.telegram_api import get_me, set_webhook, delete_webhook, sync_bot_profile
 
 # Setup Limiter for Rate Limiting login/signup
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="BotBuilder", description="Telegram Chatbot Generator for Businesses")
+
+# CORS Middleware Setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[PUBLIC_BASE_URL] if PUBLIC_BASE_URL and PUBLIC_BASE_URL != "*" else ["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+@app.middleware("http")
+async def catch_all_exceptions(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        import traceback
+        print("\n--- CRASH DETECTED ---")
+        traceback.print_exc()
+        print("--- END CRASH ---\n")
+        err_msg = str(e) if DEBUG else "An internal server error occurred."
+        return JSONResponse(status_code=500, content={"detail": err_msg})
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -96,8 +110,17 @@ async def on_startup():
         db.close()
 
 
-def render(template_name: str, request: Request, context: dict):
-    user = get_current_user(request, next(get_db()))
+def render(template_name: str, request: Request, context: dict, db: Optional[Session] = None):
+    if db is None:
+        from app.db import SessionLocal
+        db_sess = SessionLocal()
+        try:
+            user = get_current_user(request, db_sess)
+        finally:
+            db_sess.close()
+    else:
+        user = get_current_user(request, db)
+
     session_val = request.cookies.get(SESSION_COOKIE_NAME, "")
     csrf_token = generate_csrf_token(session_val) if session_val else ""
 
@@ -202,19 +225,34 @@ def signup_page(request: Request):
 @limiter.limit("5/minute")
 def signup_submit(
     request: Request,
+    username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
+    confirm_password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    username_clean = username.strip().lower()
     email_clean = email.strip().lower()
+
+    if password != confirm_password:
+        return render("signup.html", request, {"error": "Passwords do not match."})
+
     if len(password) < 6:
         return render("signup.html", request, {"error": "Password must be at least 6 characters long."})
 
-    existing = db.query(User).filter(User.email == email_clean).first()
-    if existing:
+    existing_email = db.query(User).filter(User.email == email_clean).first()
+    if existing_email:
         return render("signup.html", request, {"error": "An account with this email already exists."})
 
-    user = User(email=email_clean, password_hash=hash_password(password))
+    existing_username = db.query(User).filter(User.username == username_clean).first()
+    if existing_username:
+        return render("signup.html", request, {"error": "This username is already taken."})
+
+    user = User(
+        username=username_clean,
+        email=email_clean,
+        password_hash=hash_password(password)
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -281,13 +319,17 @@ async def api_business_research(
         if not gmaps_url:
             return JSONResponse({"success": False, "error": "Google Maps URL is required."}, status_code=400)
 
-        # Integrated Playwright Scraper
-        extracted = run_gmaps_scraper(gmaps_url)
-        if extracted:
-            return JSONResponse({"success": True, "data": extracted})
-        else:
-            return JSONResponse({"success": False, "error": "Failed to extract data from Google Maps."}, status_code=500)
+        job_id = str(uuid.uuid4())
+        RESEARCH_JOBS[job_id] = {
+            "status": "queued",
+            "progress": 0,
+            "data": None,
+            "error": None
+        }
 
+        background_tasks.add_task(run_business_research_pipeline, job_id, gmaps_url)
+
+        return JSONResponse({"success": True, "job_id": job_id})
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
@@ -334,6 +376,158 @@ async def api_fetch_gmaps_info(
         return JSONResponse({"success": False, "error": str(e)})
 
 
+# --- Google Places API (New) Endpoints ---
+
+@app.get("/api/places/config")
+async def api_places_config(user: User = Depends(require_login)):
+    """
+    Returns the Google Maps API key for the frontend Places Autocomplete widget.
+    """
+    if not GOOGLE_PLACES_API_KEY:
+        return JSONResponse({"success": False, "error": "Google Maps API key is not configured."}, status_code=500)
+    return JSONResponse({"success": True, "api_key": GOOGLE_PLACES_API_KEY})
+
+
+@app.get("/api/places/search")
+async def api_places_search(query: str, user: User = Depends(require_login)):
+    """
+    Server-side business search using Places API (New) Text Search.
+    Provides search capabilities even when client-side JS SDK fails or has key restrictions.
+    """
+    import httpx
+
+    if not GOOGLE_PLACES_API_KEY:
+        return JSONResponse({"success": False, "error": "Google Maps API key not configured."}, status_code=500)
+
+    query = query.strip()
+    if not query or len(query) < 2:
+        return JSONResponse({"success": True, "results": []})
+
+    try:
+        url = "https://places.googleapis.com/v1/places:searchText"
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.types"
+        }
+        body = {"textQuery": query}
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, headers=headers, json=body)
+            if resp.status_code != 200:
+                print(f"[PLACES SEARCH ERROR] {resp.status_code}: {resp.text}")
+                return JSONResponse({"success": False, "error": f"Search failed with status {resp.status_code}"}, status_code=resp.status_code)
+
+            data = resp.json()
+            places = data.get("places", [])
+            results = []
+            for p in places:
+                results.append({
+                    "id": p.get("id"),
+                    "name": p.get("displayName", {}).get("text", "Unknown Business"),
+                    "address": p.get("formattedAddress", "")
+                })
+
+            return JSONResponse({"success": True, "results": results})
+    except Exception as e:
+        print(f"[PLACES SEARCH EXCEPTION] {e}")
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
+@app.get("/api/places/details/{place_id}")
+async def api_places_details(place_id: str, user: User = Depends(require_login)):
+    """
+    Fetches business details from Google Places API (New) by place_id.
+    Returns structured data for autofilling the create form.
+    """
+    import httpx
+
+    if not GOOGLE_PLACES_API_KEY:
+        return JSONResponse({"success": False, "error": "Google Maps API key not configured."}, status_code=500)
+
+    try:
+        # Use the Places API (New) - Place Details
+        url = f"https://places.googleapis.com/v1/places/{place_id}"
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask": (
+                "displayName,formattedAddress,nationalPhoneNumber,internationalPhoneNumber,"
+                "websiteUri,googleMapsUri,regularOpeningHours,types,primaryType,"
+                "primaryTypeDisplayName,editorialSummary,reviews,rating,userRatingCount,"
+                "businessStatus,currentOpeningHours"
+            ),
+        }
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code != 200:
+                error_detail = resp.text
+                print(f"[PLACES API ERROR] {resp.status_code}: {error_detail}")
+                return JSONResponse({
+                    "success": False,
+                    "error": f"Google Places API returned status {resp.status_code}"
+                }, status_code=resp.status_code)
+
+            place_data = resp.json()
+
+        # Parse opening hours into structured format
+        hours = {}
+        opening_hours = place_data.get("regularOpeningHours", {})
+        if opening_hours:
+            # Build a human-readable hours string from periods
+            weekday_texts = opening_hours.get("weekdayDescriptions", [])
+            if weekday_texts:
+                # Try to build Mon-Sat and Sun categories
+                mon_sat_parts = []
+                sun_part = ""
+                for text in weekday_texts:
+                    lower = text.lower()
+                    if lower.startswith("sunday"):
+                        sun_part = text.split(":", 1)[-1].strip() if ":" in text else text
+                    else:
+                        mon_sat_parts.append(text)
+
+                if mon_sat_parts:
+                    # Check if all weekday hours are the same
+                    times = [t.split(":", 1)[-1].strip() if ":" in t else t for t in mon_sat_parts]
+                    if len(set(times)) == 1:
+                        hours["mon_sat"] = times[0]
+                    else:
+                        hours["mon_sat"] = "; ".join(mon_sat_parts)
+                if sun_part:
+                    hours["sun"] = sun_part
+
+        # Determine industry from types
+        place_types = place_data.get("types", [])
+        primary_type = place_data.get("primaryTypeDisplayName", {}).get("text", "")
+        if not primary_type and place_types:
+            # Clean up the type name
+            primary_type = place_types[0].replace("_", " ").title()
+
+        # Build response
+        result = {
+            "businessName": place_data.get("displayName", {}).get("text", ""),
+            "category": primary_type,
+            "phone": place_data.get("nationalPhoneNumber") or place_data.get("internationalPhoneNumber", ""),
+            "location": place_data.get("formattedAddress", ""),
+            "website": place_data.get("websiteUri", ""),
+            "timings": hours.get("mon_sat", ""),
+            "sunTimings": hours.get("sun", ""),
+            "description": place_data.get("editorialSummary", {}).get("text", ""),
+            "rating": place_data.get("rating"),
+            "ratingCount": place_data.get("userRatingCount"),
+            "gmapsUrl": place_data.get("googleMapsUri", ""),
+            "services": [],
+        }
+
+        return JSONResponse({"success": True, "data": result})
+
+    except Exception as e:
+        print(f"[PLACES API ERROR] {e}")
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 # Business Creation Form
 @app.get("/create", response_class=HTMLResponse)
 def create_page(request: Request, user: User = Depends(require_login)):
@@ -341,8 +535,9 @@ def create_page(request: Request, user: User = Depends(require_login)):
 
 
 @app.post("/create")
-def create_submit(
+async def create_submit(
     request: Request,
+    background_tasks: BackgroundTasks,
     name: str = Form(...),
     industry: str = Form(""),
     description: str = Form(""),
@@ -432,8 +627,7 @@ def create_submit(
         token_clean = bot_token.strip()
         try:
             # Validate token via Telegram API
-            import asyncio
-            bot_info = asyncio.run(get_me(token_clean))
+            bot_info = await get_me(token_clean)
             bot_username = bot_info.get("username", "")
 
             # Encrypt token at rest
@@ -461,7 +655,7 @@ def create_submit(
             # Auto-sync Telegram profile (setMyName, setMyDescription, setMyShortDescription)
             bio_text = f"Official AI Assistant for {cfg.name} ({cfg.industry or 'Business'})"
             desc_text = cfg.welcome_message or f"Welcome to {cfg.name}! Ask any question about our services."
-            asyncio.create_task(sync_bot_profile(token_clean, cfg.name, desc_text, bio_text))
+            background_tasks.add_task(sync_bot_profile, token_clean, cfg.name, desc_text, bio_text)
 
         except Exception as bot_err:
             print(f"[DEDICATED BOT REGISTRATION WARNING] {bot_err}")
@@ -483,13 +677,11 @@ def create_submit(
     active_token = get_current_bot_token()
     if active_token and ":" in active_token:
         try:
-            import asyncio
             bio_text = f"Official AI Assistant for {cfg.name} ({cfg.industry or 'Business'})"
             desc_text = cfg.welcome_message or f"Welcome to {cfg.name}! Ask any question about our services."
-            asyncio.create_task(sync_bot_profile(active_token, cfg.name, desc_text, bio_text))
+            background_tasks.add_task(sync_bot_profile, active_token, cfg.name, desc_text, bio_text)
         except Exception as sync_err:
             print(f"[PROFILE SYNC WARNING] {sync_err}")
-
 
     # Write to data/businesses/<business_id>.json
     json_path = BUSINESSES_DIR / f"{biz_id}.json"

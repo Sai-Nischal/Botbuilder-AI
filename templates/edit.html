@@ -3,20 +3,77 @@
 {% block title %}Edit Details - {{ business.name }}{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <div class="glass-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <div>
-                <h1 style="font-family: var(--font-heading);">Edit Business Details</h1>
-                <p style="color: var(--text-secondary);">Update core fields for {{ business.name }}</p>
-            </div>
-            <a href="/dashboard" class="btn btn-secondary btn-sm">← Cancel</a>
+<style>
+    .edit-container {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+    .edit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-12);
+    }
+    .edit-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-2);
+    }
+    .form-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        margin-bottom: var(--space-12);
+        box-shadow: var(--shadow-soft);
+    }
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-6);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+    .section-title span {
+        color: var(--color-primary);
+        font-size: 1.2rem;
+    }
+    .service-row {
+        background: var(--color-primary-soft);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-4);
+        margin-bottom: var(--space-4);
+        transition: var(--transition-fast);
+    }
+    .service-row:hover {
+        border-color: var(--color-primary);
+    }
+    .action-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: var(--space-12);
+    }
+</style>
+
+<div class="edit-container reveal">
+    <div class="edit-header">
+        <div>
+            <h1>Refine Business Identity</h1>
+            <p style="color: var(--color-text-muted);">Updating core details for {{ business.name }}</p>
         </div>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Portfolio</a>
+    </div>
 
-        <form action="/edit/{{ business.business_id }}" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <form action="/edit/{{ business.business_id }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-bottom: 1rem;">1. Basic Business Details</h3>
+        <!-- Section 1: Basic Identity -->
+        <div class="form-section">
+            <div class="section-title"><span>01</span> Basic Identity</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Business Name</label>
@@ -27,13 +84,15 @@
                     <input type="text" name="industry" class="form-control" value="{{ cfg.industry or '' }}">
                 </div>
             </div>
-
             <div class="form-group">
                 <label class="form-label">Description</label>
                 <textarea name="description" class="form-control">{{ cfg.description or '' }}</textarea>
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">2. Contact Information</h3>
+        <!-- Section 2: Contact -->
+        <div class="form-section">
+            <div class="section-title"><span>02</span> Contact Channels</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Phone</label>
@@ -46,16 +105,19 @@
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label class="form-label">Address</label>
+                    <label class="form-label">Physical Address</label>
                     <input type="text" name="address" class="form-control" value="{{ cfg.contact.address or '' }}">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Website</label>
+                    <label class="form-label">Website URL</label>
                     <input type="url" name="website" class="form-control" value="{{ cfg.contact.website or '' }}">
                 </div>
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">3. Opening Hours</h3>
+        <!-- Section 3: Hours -->
+        <div class="form-section">
+            <div class="section-title"><span>03</span> Availability</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Mon-Sat Hours</label>
@@ -66,20 +128,23 @@
                     <input type="text" name="sun_hours" class="form-control" value="{{ cfg.hours.get('sun', '') }}">
                 </div>
             </div>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">4. Services</h3>
+        <!-- Section 4: Services -->
+        <div class="form-section">
+            <div class="section-title"><span>04</span> Services & Pricing</div>
             <div id="services-edit-container">
                 {% for service in cfg.services %}
                     <div class="grid-3 service-row form-group" style="align-items: end;">
-                        <div>
+                        <div style="flex: 1;">
                             <label class="form-label">Service Name</label>
                             <input type="text" name="service_name[]" class="form-control" value="{{ service.name }}" required>
                         </div>
-                        <div>
+                        <div style="flex: 1;">
                             <label class="form-label">Price</label>
                             <input type="text" name="service_price[]" class="form-control" value="{{ service.price or '' }}">
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
+                        <div style="display: flex; gap: var(--space-3); align-items: center; flex: 1;">
                             <div style="flex: 1;">
                                 <label class="form-label">Details</label>
                                 <input type="text" name="service_details[]" class="form-control" value="{{ service.details or '' }}">
@@ -89,11 +154,14 @@
                     </div>
                 {% endfor %}
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="addServiceRow('services-edit-container')" style="margin-bottom: 1.5rem;">
-                + Add Another Service
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addServiceRow('services-edit-container')" style="margin-top: var(--space-4);">
+                + Add Service
             </button>
+        </div>
 
-            <h3 style="font-family: var(--font-heading); color: var(--accent-cyan); margin-top: 2rem; margin-bottom: 1rem;">5. Custom Greeting Messages</h3>
+        <!-- Section 5: Greetings -->
+        <div class="form-section">
+            <div class="section-title"><span>05</span> Bot Personality</div>
             <div class="form-group">
                 <label class="form-label">Welcome Message (/start)</label>
                 <textarea name="welcome_message" class="form-control">{{ cfg.welcome_message or '' }}</textarea>
@@ -102,11 +170,13 @@
                 <label class="form-label">Fallback Message</label>
                 <textarea name="fallback_message" class="form-control">{{ cfg.fallback_message or '' }}</textarea>
             </div>
+        </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem;">
-                💾 Save Details & Re-generate FAQs
+        <div class="action-footer">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+                💾 Save Changes & Sync
             </button>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

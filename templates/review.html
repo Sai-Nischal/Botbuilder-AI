@@ -3,13 +3,74 @@
 {% block title %}Review FAQs - {{ business.name }}{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<style>
+    .review-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-12);
+    }
+    .review-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        color: var(--color-text-main);
+        margin-bottom: var(--space-2);
+    }
+    .faq-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-8);
+        margin-bottom: var(--space-6);
+        transition: var(--transition-fast);
+        box-shadow: var(--shadow-soft);
+    }
+    .faq-card:hover {
+        border-color: var(--color-primary);
+        transform: translateX(4px);
+    }
+    .faq-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-4);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .faq-card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-6);
+    }
+    .faq-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+    .faq-full-width {
+        grid-column: span 2;
+    }
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: var(--space-12);
+        padding-top: var(--space-8);
+        border-top: 1px solid var(--color-border);
+    }
+</style>
+
+<div class="review-container reveal">
+    <div class="review-header">
         <div>
-            <h1 style="font-family: var(--font-heading); font-size: 2.2rem;">Review & Edit FAQs</h1>
-            <p style="color: var(--text-secondary);">Customize answers, alt phrasings, and buttons before going live.</p>
+            <h1>Refine Knowledge Base</h1>
+            <p style="color: var(--color-text-muted);">Polishing your chatbot's answers for {{ business.name }}.</p>
         </div>
-        <a href="/dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">← Dashboard</a>
     </div>
 
     <form action="/review/{{ business.business_id }}" method="POST">
@@ -17,31 +78,32 @@
 
         <div id="faqs-list-container">
             {% for faq in faqs %}
-                <div class="faq-edit-card" id="faq-card-{{ faq.id }}">
+                <div class="faq-card reveal" id="faq-card-{{ faq.id }}" style="animation-delay: {{ loop.index0 * 0.1 }}s">
                     <div class="faq-card-header">
-                        <span class="badge badge-success">FAQ #{{ faq.id }}</span>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.faq-edit-card').remove()">Delete</button>
+                        <span class="badge badge-success">Knowledge Unit #{{ faq.id }}</span>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.faq-card').remove()">Delete</button>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Primary Question</label>
-                        <input type="text" name="faq_q_{{ faq.id }}" class="form-control" value="{{ faq.q }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alternative Customer Questions / Phrasings (comma separated)</label>
-                        <input type="text" name="faq_alt_{{ faq.id }}" class="form-control" value="{{ faq.alt_questions | join(', ') }}" placeholder="e.g. opening hours, when do you open">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Answer Text</label>
-                        <textarea name="faq_a_{{ faq.id }}" class="form-control" rows="3" required>{{ faq.a }}</textarea>
-                    </div>
-                    <div class="grid-2">
+
+                    <div class="faq-card-body">
+                        <div class="form-group faq-full-width">
+                            <label class="form-label">Primary Question</label>
+                            <input type="text" name="faq_q_{{ faq.id }}" class="form-control" value="{{ faq.q }}" required>
+                        </div>
                         <div class="form-group">
-                            <label class="form-label">Menu Button Label (max 20 chars)</label>
+                            <label class="form-label">Alternative Phrasings</label>
+                            <input type="text" name="faq_alt_{{ faq.id }}" class="form-control" value="{{ faq.alt_questions | join(', ') }}" placeholder="comma separated...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button Label</label>
                             <input type="text" name="faq_button_label_{{ faq.id }}" class="form-control" value="{{ faq.button_label or faq.q[:20] }}">
                         </div>
-                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                        <div class="form-group faq-full-width">
+                            <label class="form-label">The Answer</label>
+                            <textarea name="faq_a_{{ faq.id }}" class="form-control" rows="3" required>{{ faq.a }}</textarea>
+                        </div>
+                        <div class="form-group faq-full-width" style="display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2);">
                             <input type="checkbox" name="faq_show_button_{{ faq.id }}" value="true" {% if faq.show_as_button %}checked{% endif %} id="show_btn_{{ faq.id }}">
-                            <label for="show_btn_{{ faq.id }}" class="form-label" style="margin: 0; cursor: pointer;">Show as Inline Menu Button</label>
+                            <label for="show_btn_{{ faq.id }}" class="form-label" style="margin: 0; cursor: pointer;">Enable as Quick-Reply Button</label>
                         </div>
                     </div>
                     <input type="hidden" name="faq_ids[]" value="{{ faq.id }}">
@@ -49,13 +111,13 @@
             {% endfor %}
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+        <div class="action-bar">
             <button type="button" class="btn btn-secondary" onclick="addReviewFAQRow('faqs-list-container')">
-                + Add Custom FAQ
+                + Add Custom Question
             </button>
 
             <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
-                🚀 Publish Chatbot & Build Vector Index
+                🚀 Publish & Sync Index
             </button>
         </div>
     </form>

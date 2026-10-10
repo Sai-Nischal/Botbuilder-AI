@@ -9,12 +9,23 @@ venv/
 
 # Environment variables & secrets
 .env
+.env.local
 
 # Database & local data
 *.db
 *.sqlite3
 data/
 uploads/
+
+# Temporary & Debug files
+*.log
+scratch/
+debug_*.py
+middleware_fix.py
+fetch_and_save.js
+business_data.json
+server_log.txt
+server_debug.log
 
 # Vercel & Pytest caches
 .vercel/
